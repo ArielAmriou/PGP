@@ -12,6 +12,16 @@ MAIN = src/Main.cpp
 SRC = 	$(addprefix src/, 						\
 			ArgsParser.cpp						\
 			MyPgp.cpp							\
+			$(addprefix Cript/, 				\
+				$(addprefix Xor/, 				\
+					Xor.cpp						\
+				)								\
+			)									\
+    	)
+
+HEADERS = 	$(addprefix -iquote include/, 		\
+			/									\
+			Cript/Xor/							\
     	)
 
 PATH_UNI = 	$(addprefix tests/, 				\
@@ -24,7 +34,7 @@ TESTS = tests_run
 
 CXXFLAGS = -Wall -Wextra --std=c++20
 
-CPPFLAGS = -iquote include
+CPPFLAGS = $(HEADERS)
 
 NAME = my_pgp
 
