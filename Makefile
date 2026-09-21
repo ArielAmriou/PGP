@@ -16,12 +16,16 @@ SRC = 	$(addprefix src/, 						\
 				$(addprefix Xor/, 				\
 					Xor.cpp						\
 				)								\
+				$(addprefix AES/, 				\
+					AES.cpp						\
+				)								\
 			)									\
     	)
 
 HEADERS = 	$(addprefix -iquote include/, 		\
 			/									\
 			Cript/Xor/							\
+			Cript/AES/							\
     	)
 
 PATH_UNI = 	$(addprefix tests/, 				\
