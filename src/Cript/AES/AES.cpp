@@ -9,12 +9,12 @@
 
 namespace MyPgp {
 
-    const std::string AES::encrypt(const std::string &key, const bool block) noexcept
+    const std::string AES::encrypt(const std::string &msg, const std::string &key, const bool block) noexcept
     {
         return "";
     }
 
-    const std::string AES::decrypt(const std::string &key, const bool block) noexcept
+    const std::string AES::decrypt(const std::string &cript, const std::string &key, const bool block) noexcept
     {
         return "";
     }
