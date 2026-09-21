@@ -1,6 +1,6 @@
 /*
 ** EPITECH PROJECT, 2026
-** Raytracer
+** MyPgp
 ** File description:
 ** Main
 */
