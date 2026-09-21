@@ -14,9 +14,10 @@ namespace MyPgp {
 
     class Xor: public ACipher {
     public:
-        static const std::string encrypt(const std::string &key, const bool block = false) noexcept;
+
+        static const std::string encrypt(const std::string &msg, const std::string &key, const bool block = false) noexcept;
         
-        static const std::string decrypt(const std::string &key, const bool block = false) noexcept;
+        static const std::string decrypt(const std::string &cript, const std::string &key, const bool block = false) noexcept;
     };
 
 };
