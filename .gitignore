@@ -3,3 +3,4 @@ tests_run_bin
 Testing
 screenshots
 .vscode
+*.o
