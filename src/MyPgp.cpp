@@ -11,7 +11,6 @@ namespace MyPgp {
 
     void MyPgp::run() noexcept
     {
-        return;
     }
 
 }
