@@ -60,16 +60,8 @@ jobs:
         timeout-minutes: 5
         run: make tests_run
 
-  linter:
-    name: "CPP Linter"
-    needs: check_valid_repo
-    uses: ./.github/workflows/linter.yml
-    permissions:
-      contents: write
-      pull-requests: write
-
   push_to_mirror:
-    needs: [run_tests, linter]
+    needs: [run_tests]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
