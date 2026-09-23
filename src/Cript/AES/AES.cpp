@@ -12,12 +12,40 @@ namespace MyPgp {
 
     const std::string AES::encrypt(const std::string &msg, const std::string &key, const bool block) noexcept
     {
-        return "";
+        AES aes;
+        Block mixColumns(MIXCOLUMNS);
+        std::string crypt;
+        aes.keyExpansion(key);
+        for (std::size_t i = 0; i < msg.size(); i += BLOCKSIZE) {
+            std::string str = msg.substr(i, BLOCKSIZE);
+            crypt += aes.encryptBlock(str);
+            if (block == true)
+                break;
+        }
+        return crypt;
     }
 
     const std::string AES::decrypt(const std::string &cript, const std::string &key, const bool block) noexcept
     {
         return "";
+    }
+
+    std::string AES::encryptBlock(const std::string &str)
+    {
+        std::string crypt(str);
+        while (crypt.size() < BLOCKSIZE)
+            crypt.push_back('\0');
+        xorWord(crypt, _keys[0]);
+        for (std::size_t i = 1; i < _keys.size(); i++) {
+            subWord(crypt);
+            Block tmp(crypt);
+            shiftRows(tmp);
+            if (i != _keys.size() - 1)
+                mixColumns(tmp);
+            crypt = tmp.getString();
+            xorWord(crypt, _keys[i]);
+        }
+        return crypt;
     }
 
     std::string &AES::xorWord(std::string &word, const std::string &key)

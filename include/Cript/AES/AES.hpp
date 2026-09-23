@@ -34,17 +34,19 @@ namespace MyPgp {
         static char gMul(char a, char b);
         static char xorChar(char a, char b);
         Block &mixColumns(Block &block);
+        std::string encryptBlock(const std::string &str);
         
         std::vector<std::string> _keys;
         Block _mixColumns;
 
         static constexpr std::size_t NBROUND = 6;
         static constexpr std::size_t WORDSIZE = 4;
+        static constexpr std::size_t BLOCKSIZE = 16;
         static constexpr std::size_t SBOXSIZE = 256;
         static const std::array<u_int8_t, SBOXSIZE> SBOX;
         static constexpr std::size_t RCONSIZE = 10;
         static const std::array<u_int8_t, RCONSIZE> RCON;
-        static const std::array<u_int8_t, WORDSIZE * WORDSIZE> MIXCOLUMNS;
+        static const std::array<u_int8_t, BLOCKSIZE> MIXCOLUMNS;
     };
 };
 
