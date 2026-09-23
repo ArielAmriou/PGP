@@ -6,7 +6,6 @@
 */
 
 #include <algorithm>
-#include <iomanip>
 #include "AES.hpp"
 
 namespace MyPgp {
@@ -77,6 +76,38 @@ namespace MyPgp {
         }
     }
 
+    char AES::gMul(char a, char b)
+    {
+        char p = 0;
+        for (std::size_t counter = 0; counter < 8; counter++) {
+            if ((b & 1) != 0) {
+                p ^= a;
+            }
+            bool hi_bit_set = (a & 0x80) != 0;
+            a <<= 1;
+            if (hi_bit_set) {
+                a ^= 0x1B;
+            }
+            b >>= 1;
+        }
+        return p;
+    }
+
+    char AES::xorChar(char a, char b)
+    {
+        return a ^ b;
+    }
+
+    AES::Block &AES::mixColumns(Block &block)
+    {
+        for (std::size_t i = 0; i < block.getColSize(); i++) {
+            auto col = block.getNColumn(i);
+            auto mix = _mixColumns.customMul(col, xorChar, gMul);
+            block.modifyNColumn(mix, i);
+        }
+        return block;
+    }
+
     AES::Block &AES::shiftRows(Block &block)
     {
         for (std::size_t i = 0; i < block.getRowSize(); i++) {
@@ -110,5 +141,9 @@ namespace MyPgp {
 
     const std::array<u_int8_t, AES::RCONSIZE> AES::RCON = {
         0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36
+    };
+
+    const std::array<u_int8_t, AES::WORDSIZE * AES::WORDSIZE> AES::MIXCOLUMNS = {
+        0x02, 0x01, 0x01, 0x03, 0x03, 0x02, 0x01, 0x01, 0x01, 0x03, 0x02, 0x01, 0x01, 0x01, 0x03, 0x02
     };
 };
