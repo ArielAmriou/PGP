@@ -20,6 +20,13 @@ namespace MyPgp {
         return "";
     }
 
+    std::string &AES::xorWord(std::string &word, const std::string &key)
+    {
+        for (std::size_t i = 0; i < WORDSIZE; i++)
+            word[i] ^= key[i];
+        return word;
+    }
+
     std::string &AES::subWord(std::string &word)
     {
         for (auto &letter : word)
@@ -37,6 +44,36 @@ namespace MyPgp {
     {
         word[0] = static_cast<char>(static_cast<u_int8_t>(word[0]) ^ RCON[round - 1]);
         return word;
+    }
+
+    void AES::keyExpansion(const std::string &key)
+    {
+        const std::size_t nk = key.size() / WORDSIZE;
+        const std::size_t nr = nk + NBROUND;
+        const std::size_t totalWords = WORDSIZE * (nr + 1);
+        std::vector<std::string> words(totalWords);
+
+        for (std::size_t i = 0; i < nk; i++)
+            words[i] = key.substr(i * WORDSIZE, WORDSIZE);
+        for (std::size_t i = nk; i < totalWords; i++) {
+            std::string tmp = words[i - 1];
+            if (i % nk == 0) {
+                rotWord(tmp);
+                subWord(tmp);
+                rcon(tmp, i / nk);
+            } else if (nk > NBROUND && i % nk == WORDSIZE) {
+                subWord(tmp);
+            }
+            words[i] = words[i - nk];
+            xorWord(words[i], tmp);
+        }
+        _keys.clear();
+        for (std::size_t r = 0; r <= nr; r++) {
+            std::string tmp;
+            for (std::size_t i = 0; i < WORDSIZE; i++)
+                tmp += words[r * WORDSIZE + i];
+            _keys.push_back(tmp);
+        }
     }
 
     const std::array<u_int8_t, AES::SBOXSIZE> AES::SBOX = {
