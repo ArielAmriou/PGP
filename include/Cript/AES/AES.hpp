@@ -11,6 +11,7 @@
 #include <array>
 #include <vector>
 #include "ACipher.hpp"
+#include "Matrix.hpp"
 
 namespace MyPgp {
 
@@ -20,11 +21,14 @@ namespace MyPgp {
         
         static const std::string decrypt(const std::string &cript, const std::string &key, const bool block = false) noexcept;
     private:
+        using Block = Matrix<4, 4>;
+
         std::string &xorWord(std::string &word, const std::string &key);
         std::string &subWord(std::string &word);
         std::string &rotWord(std::string &word);
         std::string &rcon(std::string &word, const std::size_t round);
         void keyExpansion(const std::string &key);
+        Block &shiftRows(Block &block);
         
         std::vector<std::string> _keys;
         static constexpr std::size_t NBROUND = 6;

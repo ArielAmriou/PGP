@@ -6,6 +6,7 @@
 */
 
 #include <algorithm>
+#include <iomanip>
 #include "AES.hpp"
 
 namespace MyPgp {
@@ -22,7 +23,7 @@ namespace MyPgp {
 
     std::string &AES::xorWord(std::string &word, const std::string &key)
     {
-        for (std::size_t i = 0; i < WORDSIZE; i++)
+        for (std::size_t i = 0; i < word.size(); i++)
             word[i] ^= key[i];
         return word;
     }
@@ -74,6 +75,18 @@ namespace MyPgp {
                 tmp += words[r * WORDSIZE + i];
             _keys.push_back(tmp);
         }
+    }
+
+    AES::Block &AES::shiftRows(Block &block)
+    {
+        for (std::size_t i = 0; i < block.getRowSize(); i++) {
+            std::vector<char> tmp(block.getColSize());
+            for (std::size_t j = 0; j < block.getColSize(); j++)
+                tmp[j] = block(i, (j + i) % block.getColSize());
+            for (std::size_t j = 0; j < block.getColSize(); j++)
+                block(i, j) = tmp[j];
+        }
+        return block;
     }
 
     const std::array<u_int8_t, AES::SBOXSIZE> AES::SBOX = {

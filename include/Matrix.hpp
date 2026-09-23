@@ -25,6 +25,32 @@ namespace MyPgp {
             char operator()(std::size_t row, std::size_t col) const {return _matrix[row][col];}
             char &operator()(std::size_t row, std::size_t col) {return _matrix[row][col];}
 
+            [[nodiscard]] std::size_t getColSize() const { return Col; }
+            [[nodiscard]] std::size_t getRowSize() const { return Row; }
+
+            [[nodiscard]] std::string getString() const
+            {
+                std::string word;
+                for (std::size_t i = 0; i < Col; i++) {
+                    for (std::size_t j = 0; j < Row; j++) {
+                        word.push_back((*this)(j, i));
+                    }
+                }
+                return word;
+            }
+
+            void setString(const std::string &str)
+            {
+                std::string tmp(str);
+                while (tmp.size() < Row * Col)
+                    tmp.push_back('\0');
+                for (std::size_t i = 0; i < Col; i++) {
+                    for (std::size_t j = 0; j < Row; j++) {
+                        (*this)(j, i) = tmp[i * Row + j];
+                    }
+                }
+            }
+
             template <std::size_t maCol>
             Matrix<Row, maCol> operator*(const Matrix<Col, maCol> &matrix)
             {
