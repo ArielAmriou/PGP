@@ -5,6 +5,8 @@
 ** ${descriptor}
 */
 
+#define __STDC_LIMIT_MACROS
+#include <cstdint>
 
 #include <criterion/criterion.h>
 #include <criterion/redirect.h>

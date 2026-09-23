@@ -13,6 +13,8 @@
     #include <exception>
     #include <optional>
     #include <iomanip>
+    #include <functional>
+    #include <sstream>
 
 namespace MyPgp {
 
