@@ -8,8 +8,9 @@
 #ifndef AES_HPP_
 #define AES_HPP_
 
-#include "ACipher.hpp"
 #include <array>
+#include <vector>
+#include "ACipher.hpp"
 
 namespace MyPgp {
 
@@ -21,10 +22,13 @@ namespace MyPgp {
     private:
         std::string &subWord(std::string &word);
         std::string &rotWord(std::string &word);
-
+        std::string &rcon(std::string &word, const std::size_t round);
+        
         static constexpr std::size_t WORDSIZE = 4;
         static constexpr std::size_t SBOXSIZE = 256;
         static const std::array<u_int8_t, SBOXSIZE> SBOX;
+        static constexpr std::size_t RCONSIZE = 10;
+        static const std::array<u_int8_t, RCONSIZE> RCON;
     };
 
 };
