@@ -17,7 +17,7 @@ namespace MyPgp {
 
     class AES: public ACipher {
     public:
-        AES() : _mixColumns(MIXCOLUMNS) {};
+        AES() : _mixColumns(MIXCOLUMNS), _unmixColumns(UNMIXCOLUMNS) {};
 
         static const std::string encrypt(const std::string &msg, const std::string &key, const bool block = false) noexcept;
         
@@ -35,9 +35,14 @@ namespace MyPgp {
         static char xorChar(char a, char b);
         Block &mixColumns(Block &block);
         std::string encryptBlock(const std::string &str);
+        std::string &unsubWord(std::string &word);
+        Block &unshiftRows(Block &block);
+        Block &unmixColumns(Block &block);
+        std::string decryptBlock(const std::string &str);
         
         std::vector<std::string> _keys;
         Block _mixColumns;
+        Block _unmixColumns;
 
         static constexpr std::size_t NBROUND = 6;
         static constexpr std::size_t WORDSIZE = 4;
@@ -47,6 +52,7 @@ namespace MyPgp {
         static constexpr std::size_t RCONSIZE = 10;
         static const std::array<u_int8_t, RCONSIZE> RCON;
         static const std::array<u_int8_t, BLOCKSIZE> MIXCOLUMNS;
+        static const std::array<u_int8_t, BLOCKSIZE> UNMIXCOLUMNS;
     };
 };
 

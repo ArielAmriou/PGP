@@ -13,7 +13,6 @@ namespace MyPgp {
     const std::string AES::encrypt(const std::string &msg, const std::string &key, const bool block) noexcept
     {
         AES aes;
-        Block mixColumns(MIXCOLUMNS);
         std::string crypt;
         aes.keyExpansion(key);
         for (std::size_t i = 0; i < msg.size(); i += BLOCKSIZE) {
@@ -27,7 +26,16 @@ namespace MyPgp {
 
     const std::string AES::decrypt(const std::string &cript, const std::string &key, const bool block) noexcept
     {
-        return "";
+        AES aes;
+        std::string decrypt;
+        aes.keyExpansion(key);
+        for (std::size_t i = 0; i < cript.size(); i += BLOCKSIZE) {
+            std::string str = cript.substr(i, BLOCKSIZE);
+            decrypt += aes.decryptBlock(str);
+            if (block == true)
+                break;
+        }
+        return decrypt;
     }
 
     std::string AES::encryptBlock(const std::string &str)
@@ -48,6 +56,22 @@ namespace MyPgp {
         return crypt;
     }
 
+    std::string AES::decryptBlock(const std::string &str)
+    {
+        std::string decrypt(str);
+        for (std::size_t i = _keys.size() - 1; i >= 1; i--) {
+            xorWord(decrypt, _keys[i]);
+            Block tmp(decrypt);
+            if (i != _keys.size() - 1)
+                unmixColumns(tmp);
+            unshiftRows(tmp);
+            decrypt = tmp.getString();
+            unsubWord(decrypt);
+        }
+        xorWord(decrypt, _keys[0]);
+        return decrypt;
+    }
+
     std::string &AES::xorWord(std::string &word, const std::string &key)
     {
         for (std::size_t i = 0; i < word.size(); i++)
@@ -59,6 +83,15 @@ namespace MyPgp {
     {
         for (auto &letter : word)
             letter = SBOX[static_cast<u_int8_t>(letter)];
+        return word;
+    }
+
+    std::string &AES::unsubWord(std::string &word)
+    {
+        for (auto &letter : word) {
+            const auto it = std::find(SBOX.begin(), SBOX.end(), static_cast<u_int8_t>(letter));
+            letter = static_cast<char>(std::distance(SBOX.begin(), it));
+        }
         return word;
     }
 
@@ -136,12 +169,35 @@ namespace MyPgp {
         return block;
     }
 
+    AES::Block &AES::unmixColumns(Block &block)
+    {
+        for (std::size_t i = 0; i < block.getColSize(); i++) {
+            auto col = block.getNColumn(i);
+            auto mix = _unmixColumns.customMul(col, xorChar, gMul);
+            block.modifyNColumn(mix, i);
+        }
+        return block;
+    }
+
+
     AES::Block &AES::shiftRows(Block &block)
     {
         for (std::size_t i = 0; i < block.getRowSize(); i++) {
             std::vector<char> tmp(block.getColSize());
             for (std::size_t j = 0; j < block.getColSize(); j++)
                 tmp[j] = block(i, (j + i) % block.getColSize());
+            for (std::size_t j = 0; j < block.getColSize(); j++)
+                block(i, j) = tmp[j];
+        }
+        return block;
+    }
+
+    AES::Block &AES::unshiftRows(Block &block)
+    {
+        for (std::size_t i = 0; i < block.getRowSize(); i++) {
+            std::vector<char> tmp(block.getColSize());
+            for (std::size_t j = 0; j < block.getColSize(); j++)
+                tmp[j] = block(i, (j + block.getColSize() - i) % block.getColSize());
             for (std::size_t j = 0; j < block.getColSize(); j++)
                 block(i, j) = tmp[j];
         }
@@ -173,5 +229,9 @@ namespace MyPgp {
 
     const std::array<u_int8_t, AES::WORDSIZE * AES::WORDSIZE> AES::MIXCOLUMNS = {
         0x02, 0x01, 0x01, 0x03, 0x03, 0x02, 0x01, 0x01, 0x01, 0x03, 0x02, 0x01, 0x01, 0x01, 0x03, 0x02
+    };
+
+    const std::array<u_int8_t, AES::WORDSIZE * AES::WORDSIZE> AES::UNMIXCOLUMNS = {
+        0x0e, 0x09, 0x0d, 0x0b, 0x0b, 0x0e, 0x09, 0x0d, 0x0d, 0x0b, 0x0e, 0x09, 0x09, 0x0d, 0x0b, 0x0e
     };
 };
