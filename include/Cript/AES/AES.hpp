@@ -20,10 +20,11 @@ namespace MyPgp {
         static const std::string decrypt(const std::string &cript, const std::string &key, const bool block = false) noexcept;
     private:
         std::string &subWord(std::string &word);
+        std::string &rotWord(std::string &word);
 
         static constexpr std::size_t WORDSIZE = 4;
         static constexpr std::size_t SBOXSIZE = 256;
-        static const std::array<char, SBOXSIZE> SBOX;
+        static const std::array<u_int8_t, SBOXSIZE> SBOX;
     };
 
 };
