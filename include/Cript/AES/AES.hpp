@@ -12,6 +12,7 @@
 #include <vector>
 #include "ACipher.hpp"
 #include "Matrix.hpp"
+#include "Exception.hpp"
 
 namespace MyPgp {
 
@@ -19,9 +20,15 @@ namespace MyPgp {
     public:
         AES() : _mixColumns(MIXCOLUMNS), _unmixColumns(UNMIXCOLUMNS) {};
 
-        static const std::string encrypt(const std::string &msg, const std::string &key, const bool block = false) noexcept;
+        static const std::string encrypt(const std::string &msg, const std::string &key, const bool block = false);
         
-        static const std::string decrypt(const std::string &cript, const std::string &key, const bool block = false) noexcept;
+        static const std::string decrypt(const std::string &cript, const std::string &key, const bool block = false);
+
+        class WrongKeySize : public MyPgpException {
+        public:
+            WrongKeySize() :
+                MyPgpException("The key is not of the right size. Must be 16, 24 or 32 bytes.") {};
+        };
     private:
         using Block = Matrix<4, 4>;
 
@@ -53,6 +60,7 @@ namespace MyPgp {
         static const std::array<u_int8_t, RCONSIZE> RCON;
         static const std::array<u_int8_t, BLOCKSIZE> MIXCOLUMNS;
         static const std::array<u_int8_t, BLOCKSIZE> UNMIXCOLUMNS;
+        static const std::vector<std::size_t> KEYSIZES;
     };
 };
 

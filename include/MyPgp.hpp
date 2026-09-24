@@ -10,9 +10,12 @@
 
 namespace MyPgp {
 
+    constexpr int EPISUCCESS = 0;
+    constexpr int EPIERROR = 84;
+
     class MyPgp {
     public:
-        void run() noexcept;
+        void run();
     };
 };
 

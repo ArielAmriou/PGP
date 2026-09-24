@@ -10,8 +10,17 @@
 
 namespace MyPgp {
 
-    const std::string AES::encrypt(const std::string &msg, const std::string &key, const bool block) noexcept
+    const std::string AES::encrypt(const std::string &msg, const std::string &key, const bool block)
     {
+        bool correct = false;
+        for (auto size : KEYSIZES) {
+            if (key.size() == size) {
+                correct = true;
+                break;
+            }
+        }
+        if (!correct)
+            throw WrongKeySize();
         AES aes;
         std::string crypt;
         aes.keyExpansion(key);
@@ -24,8 +33,17 @@ namespace MyPgp {
         return crypt;
     }
 
-    const std::string AES::decrypt(const std::string &cript, const std::string &key, const bool block) noexcept
+    const std::string AES::decrypt(const std::string &cript, const std::string &key, const bool block)
     {
+        bool correct = false;
+        for (auto size : KEYSIZES) {
+            if (key.size() == size) {
+                correct = true;
+                break;
+            }
+        }
+        if (!correct)
+            throw WrongKeySize();
         AES aes;
         std::string decrypt;
         aes.keyExpansion(key);
@@ -233,5 +251,9 @@ namespace MyPgp {
 
     const std::array<u_int8_t, AES::WORDSIZE * AES::WORDSIZE> AES::UNMIXCOLUMNS = {
         0x0e, 0x09, 0x0d, 0x0b, 0x0b, 0x0e, 0x09, 0x0d, 0x0d, 0x0b, 0x0e, 0x09, 0x09, 0x0d, 0x0b, 0x0e
+    };
+
+    const std::vector<std::size_t> AES::KEYSIZES = {
+        16, 24, 32
     };
 };

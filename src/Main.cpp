@@ -6,10 +6,18 @@
 */
 
 #include "MyPgp.hpp"
+#include "Exception.hpp"
+#include <iostream>
 
 int main(int ac, char **av)
 {
     MyPgp::MyPgp pgp;
 
-    pgp.run();
+    try {
+        pgp.run();
+    } catch (MyPgp::MyPgpException &e) {
+        std::cerr << e.what() << std::endl;
+        return MyPgp::EPIERROR;
+    }
+    return MyPgp::EPISUCCESS;
 }
