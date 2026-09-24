@@ -5,3 +5,4 @@ screenshots
 .vscode
 *.o
 *.a
+tests_run*

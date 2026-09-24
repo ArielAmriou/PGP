@@ -9,12 +9,12 @@
 
 namespace MyPgp {
 
-    const std::string Xor::encrypt(const std::string &msg, const std::string &key, const bool block) noexcept
+    const std::string Xor::encrypt(const std::string &msg, const std::string &key, const bool block)
     {
         return "";
     }
 
-    const std::string Xor::decrypt(const std::string &cript, const std::string &key, const bool block) noexcept
+    const std::string Xor::decrypt(const std::string &cript, const std::string &key, const bool block)
     {
         return "";
     }

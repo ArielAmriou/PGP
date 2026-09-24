@@ -6,12 +6,17 @@
 */
 
 #include "MyPgp.hpp"
+#include "Exception.hpp"
 
 namespace MyPgp {
 
-    void MyPgp::run() noexcept
+    void MyPgp::run()
     {
-        return;
+        try {
+            return;
+        } catch (MyPgpException &e) {
+            throw e;
+        }
     }
 
 }
