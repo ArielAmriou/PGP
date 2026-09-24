@@ -30,6 +30,7 @@ HEADERS = 	$(addprefix -iquote include/, 		\
 
 PATH_UNI = 	$(addprefix tests/, 				\
 				tests_init.cpp 					\
+				tests_aes.cpp 					\
 			)
 
 OBJ = $(SRC:.cpp=.o) $(MAIN:.cpp=.o)
