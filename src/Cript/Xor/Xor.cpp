@@ -13,7 +13,7 @@
 
 namespace MyPgp {
 
-    const std::string Xor::encrypt(const std::string &msg, const std::string &key, const bool block) noexcept
+    const std::string Xor::encrypt(const std::string &msg, const std::string &key, const bool block)
     {
         std::size_t i = 0;
         std::size_t msglen = msg.length();
@@ -30,7 +30,7 @@ namespace MyPgp {
         return cript;
     }
 
-    const std::string Xor::decrypt(const std::string &cript, const std::string &key, const bool block) noexcept
+    const std::string Xor::decrypt(const std::string &cript, const std::string &key, const bool block)
     {
         std::string msg;
         std::string bytes;

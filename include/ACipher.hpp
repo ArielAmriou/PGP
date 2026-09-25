@@ -15,9 +15,9 @@ namespace MyPgp {
     class ACipher {
     public:
 
-        static const std::string encrypt(const std::string &msg, const std::string key, const bool block = false) noexcept { return ""; };
+        static const std::string encrypt(const std::string &msg, const std::string key, const bool block = false) { return ""; };
         
-        static const std::string decrypt(const std::string &cript, const std::string key, const bool block = false) noexcept { return ""; };
+        static const std::string decrypt(const std::string &cript, const std::string key, const bool block = false) { return ""; };
         
     };
 

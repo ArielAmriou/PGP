@@ -16,17 +16,21 @@ SRC = 	$(addprefix src/, 						\
 				$(addprefix Xor/, 				\
 					Xor.cpp						\
 				)								\
+				$(addprefix AES/, 				\
+					AES.cpp						\
+				)								\
 			)									\
     	)
 
 HEADERS = 	$(addprefix -iquote include/, 		\
 			/									\
 			Cript/Xor/							\
+			Cript/AES/							\
     	)
 
 PATH_UNI = 	$(addprefix tests/, 				\
 				tests_init.cpp 					\
-				tests_xor.cpp 					\
+				tests_aes.cpp 					\
 			)
 
 OBJ = $(SRC:.cpp=.o) $(MAIN:.cpp=.o)
