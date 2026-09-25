@@ -21,10 +21,7 @@ namespace MyPgp {
         std::string cript;
 
         for (; i < msglen; ++i) {
-            char msgByte = msg[i];
-            char keyByte = key[i % keylen];
-
-            char xorByte = msgByte ^ keyByte;
+            char xorByte = msg[i] ^ key[i % keylen];
             
             cript.push_back(xorByte);
         }
