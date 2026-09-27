@@ -8,6 +8,10 @@
 #include "MyPgp.hpp"
 #include "Exception.hpp"
 
+#include "Xor.hpp"
+#include <iostream>
+#include <bits/stdc++.h>
+
 namespace MyPgp {
 
     void MyPgp::run()
