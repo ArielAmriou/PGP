@@ -9,6 +9,7 @@
     #define ARGPARSER_HPP_
 
     #include <exception>
+    #include <functional>
     #include <iomanip>
     #include <optional>
     #include <string>
