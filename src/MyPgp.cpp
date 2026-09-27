@@ -16,6 +16,10 @@
 #include "Exception.hpp"
 #include "MyPgp.hpp"
 
+#include "Xor.hpp"
+#include <iostream>
+#include <bits/stdc++.h>
+
 namespace MyPgp {
 
     static constexpr std::array<std::pair<std::string_view, CryptoSystem>, 5>
