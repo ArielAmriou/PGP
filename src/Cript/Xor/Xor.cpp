@@ -22,7 +22,6 @@ namespace MyPgp {
 
         for (; i < msglen; ++i) {
             char xorByte = msg[i] ^ key[i % keylen];
-            
             cript.push_back(xorByte);
         }
         for (; i % keylen != 0; ++i)
@@ -39,12 +38,9 @@ namespace MyPgp {
         
         for (std::size_t i = 0; i < criptlen ; ++i) {
             unsigned int byte;
-
             byte = cript[i];
             msg.push_back(static_cast<char>(byte) ^ key[i % keylen]);
         }
-        
         return msg;
     }
-
 };
