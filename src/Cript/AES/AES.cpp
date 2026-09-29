@@ -15,9 +15,35 @@ namespace MyPgp {
     {
         std::string cpy = MyPgp::hexToStr(key, WORDSIZE);
 
+        try {
+            std::string crypt = basicEncrypt(msg, cpy, block);
+    
+            return MyPgp::strToHex(crypt, WORDSIZE);
+        } catch (MyPgpException &e) {
+            throw e;
+        }
+    }
+
+    const std::string AES::decrypt(const std::string &cript, const std::string &key, const bool block)
+    {
+        std::string keyCpy = MyPgp::hexToStr(key, WORDSIZE);
+        std::string criptCpy = MyPgp::hexToStr(cript, WORDSIZE);
+        
+        try {
+            std::string decrypt = basicDecrypt(criptCpy, keyCpy, block);
+            
+            decrypt.erase(decrypt.find_last_not_of('\0') + 1);
+            return decrypt;
+        } catch (MyPgpException &e) {
+            throw e;
+        }
+    }
+
+    const std::string AES::basicEncrypt(const std::string &msg, const std::string &key, const bool block)
+    {
         bool correct = false;
         for (auto size : KEYSIZES) {
-            if (cpy.size() == size) {
+            if (key.size() == size) {
                 correct = true;
                 break;
             }
@@ -26,24 +52,21 @@ namespace MyPgp {
             throw WrongKeySize();
         AES aes;
         std::string crypt;
-        aes.keyExpansion(cpy);
+        aes.keyExpansion(key);
         for (std::size_t i = 0; i < msg.size(); i += BLOCKSIZE) {
             std::string str = msg.substr(i, BLOCKSIZE);
             crypt += aes.encryptBlock(str);
             if (block == true)
                 break;
         }
-        return MyPgp::strToHex(crypt, WORDSIZE);
+        return crypt;
     }
 
-    const std::string AES::decrypt(const std::string &cript, const std::string &key, const bool block)
+    const std::string AES::basicDecrypt(const std::string &cript, const std::string &key, const bool block)
     {
-        std::string keyCpy = MyPgp::hexToStr(key, WORDSIZE);
-        std::string criptCpy = MyPgp::hexToStr(cript, WORDSIZE);
-
         bool correct = false;
         for (auto size : KEYSIZES) {
-            if (keyCpy.size() == size) {
+            if (key.size() == size) {
                 correct = true;
                 break;
             }
@@ -52,14 +75,13 @@ namespace MyPgp {
             throw WrongKeySize();
         AES aes;
         std::string decrypt;
-        aes.keyExpansion(keyCpy);
-        for (std::size_t i = 0; i < criptCpy.size(); i += BLOCKSIZE) {
-            std::string str = criptCpy.substr(i, BLOCKSIZE);
+        aes.keyExpansion(key);
+        for (std::size_t i = 0; i < cript.size(); i += BLOCKSIZE) {
+            std::string str = cript.substr(i, BLOCKSIZE);
             decrypt += aes.decryptBlock(str);
             if (block == true)
                 break;
         }
-        decrypt.erase(decrypt.find_last_not_of('\0') + 1);
         return decrypt;
     }
 

@@ -43,6 +43,7 @@ namespace MyPgp {
         static void displayHelp();
         static std::string hexToStr(const std::string &hex, std::size_t wordSize = 0);
         static std::string strToHex(const std::string &str, std::size_t wordSize = 0);
+        static std::string reorder(std::string s, std::size_t wordSize = 0);
 
     private:
 
@@ -54,7 +55,6 @@ namespace MyPgp {
             bool parseKey;
         };
 
-        static std::string reorder(std::string s, std::size_t wordSize = 0);
         void parseArgs(std::vector<std::string> args);
         void launch();
         void parseMsg();

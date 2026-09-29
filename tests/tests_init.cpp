@@ -17,7 +17,7 @@ static void redirect_all_std()
     cr_redirect_stderr();
 }
 
-Test(Example, example_test)
+Test(Example, example_test, .init = redirect_all_std)
 {
     cr_assert(true);
 }

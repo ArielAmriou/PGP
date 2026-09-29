@@ -21,8 +21,12 @@ namespace MyPgp {
         AES() : _mixColumns(MIXCOLUMNS), _unmixColumns(UNMIXCOLUMNS) {};
 
         static const std::string encrypt(const std::string &msg, const std::string &key, const bool block = false);
+
+        static const std::string basicEncrypt(const std::string &msg, const std::string &key, const bool block = false);
         
         static const std::string decrypt(const std::string &cript, const std::string &key, const bool block = false);
+
+        static const std::string basicDecrypt(const std::string &msg, const std::string &key, const bool block = false);
 
         class WrongKeySize : public MyPgpException {
         public:

@@ -16,9 +16,13 @@ namespace MyPgp {
     public:
         using CipherFn = const std::string (*)(const std::string &, const std::string &, const bool);
 
-        static const std::string encrypt(const std::string &msg, const std::string key, const bool block = false) { return ""; };
+        static const std::string encrypt([[maybe_unused]] const std::string &msg,
+            [[maybe_unused]] const std::string key,
+            [[maybe_unused]] const bool block = false) { return ""; };
         
-        static const std::string decrypt(const std::string &cript, const std::string key, const bool block = false) { return ""; };
+        static const std::string decrypt([[maybe_unused]] const std::string &cript,
+            [[maybe_unused]] const std::string key,
+            [[maybe_unused]] const bool block = false) { return ""; };
         
     };
 
