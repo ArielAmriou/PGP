@@ -19,19 +19,19 @@
 #include "MyPgp.hpp"
 
 #include "Xor.hpp"
+#include "AES.hpp"
 #include <iostream>
 #include <bits/stdc++.h>
 
 namespace MyPgp {
 
-    static constexpr std::array<std::pair<std::string_view, CryptoSystem>, 5>
-        CRYPTO_SYSTEMS{{
-            {"xor", CryptoSystem::XOR},
-            {"aes", CryptoSystem::AES},
-            {"rsa", CryptoSystem::RSA},
-            {"pgp-xor", CryptoSystem::PGP_XOR},
-            {"pgp-aes", CryptoSystem::PGP_AES},
-        }};
+    const std::array<MyPgp::CryptoEntry, 5> MyPgp::CRYPTO_SYSTEMS{{
+        {"xor", CryptoSystem::XOR, &Xor::encrypt, &Xor::decrypt, true},
+        {"aes", CryptoSystem::AES, &AES::encrypt, &AES::decrypt, true},
+        {"rsa", CryptoSystem::RSA, nullptr, nullptr, true},
+        {"pgp-xor", CryptoSystem::PGP_XOR, nullptr, nullptr, false},
+        {"pgp-aes", CryptoSystem::PGP_AES, nullptr, nullptr, false},
+    }};
 
     MyPgp::MyPgp(int ac, char **av)
     {
@@ -76,11 +76,11 @@ namespace MyPgp {
             throw Parser::Help();
 
         auto system = std::find_if(CRYPTO_SYSTEMS.begin(), CRYPTO_SYSTEMS.end(),
-            [&args](const auto &pair) { return pair.first == args.front(); });
+            [&args](const auto &pair) { return pair.name == args.front(); });
         if (system == CRYPTO_SYSTEMS.end())
             throw Parser::ArgsParserError(
                 args.front() + " is not a valid method");
-        _cryptoSystem = system->second;
+        _cryptoSystem = system->system;
         args.erase(args.begin());
 
         if (_mode == Mode::GENERATE && _cryptoSystem != CryptoSystem::RSA)
@@ -126,13 +126,24 @@ namespace MyPgp {
 
     void MyPgp::launch()
     {
-        
+        auto system = std::find_if(CRYPTO_SYSTEMS.begin(), CRYPTO_SYSTEMS.end(),
+            [this](const auto &pair) { return pair.system == this->_cryptoSystem; });
+        try {
+            if (_mode == Mode::CIPHER && system->encrypt && _key) {
+                _return = system->encrypt(_msg, system->parseKey ? hexToStr(*_key) : *_key, _block);
+                _return = system->parseKey ? strToHex(_return) : _return;
+            } else if (_mode == Mode::DECIPHER && system->encrypt && _key)
+                _return = system->decrypt(hexToStr(_msg), system->parseKey ? hexToStr(*_key) : *_key, _block);
+        } catch (MyPgpException &e) {
+            throw e;
+        }
     }
 
     void MyPgp::run()
     {
         try {
             launch();
+            std::cout << _return << std::endl;
         } catch (MyPgpException &e) {
             throw e;
         }

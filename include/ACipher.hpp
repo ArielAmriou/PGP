@@ -14,6 +14,7 @@ namespace MyPgp {
 
     class ACipher {
     public:
+        using CipherFn = const std::string (*)(const std::string &, const std::string &, const bool);
 
         static const std::string encrypt(const std::string &msg, const std::string key, const bool block = false) { return ""; };
         

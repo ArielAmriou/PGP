@@ -11,6 +11,7 @@
     #include <optional>
     #include <string>
     #include <vector>
+    #include "ACipher.hpp"
 
 namespace MyPgp {
 
@@ -44,6 +45,15 @@ namespace MyPgp {
         static std::string strToHex(const std::string &str);
 
     private:
+
+        struct CryptoEntry {
+            std::string_view name;
+            CryptoSystem system;
+            ACipher::CipherFn encrypt;
+            ACipher::CipherFn decrypt;
+            bool parseKey;
+        };
+
         void parseArgs(std::vector<std::string> args);
         void launch();
         void parseMsg();
@@ -53,8 +63,11 @@ namespace MyPgp {
         bool _block = false;
         std::optional<std::string> _key;
         std::string _msg;
+        std::string _return;
         std::optional<long long> _p;
         std::optional<long long> _q;
+
+        static const std::array<CryptoEntry, 5> CRYPTO_SYSTEMS;
     };
 };
 
