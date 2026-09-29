@@ -7,14 +7,17 @@
 
 #include <algorithm>
 #include "AES.hpp"
+#include "MyPgp.hpp"
 
 namespace MyPgp {
 
     const std::string AES::encrypt(const std::string &msg, const std::string &key, const bool block)
     {
+        std::string cpy = MyPgp::hexToStr(key, WORDSIZE);
+
         bool correct = false;
         for (auto size : KEYSIZES) {
-            if (key.size() == size) {
+            if (cpy.size() == size) {
                 correct = true;
                 break;
             }
@@ -23,21 +26,24 @@ namespace MyPgp {
             throw WrongKeySize();
         AES aes;
         std::string crypt;
-        aes.keyExpansion(key);
+        aes.keyExpansion(cpy);
         for (std::size_t i = 0; i < msg.size(); i += BLOCKSIZE) {
             std::string str = msg.substr(i, BLOCKSIZE);
             crypt += aes.encryptBlock(str);
             if (block == true)
                 break;
         }
-        return crypt;
+        return MyPgp::strToHex(crypt, WORDSIZE);
     }
 
     const std::string AES::decrypt(const std::string &cript, const std::string &key, const bool block)
     {
+        std::string keyCpy = MyPgp::hexToStr(key, WORDSIZE);
+        std::string criptCpy = MyPgp::hexToStr(cript, WORDSIZE);
+
         bool correct = false;
         for (auto size : KEYSIZES) {
-            if (key.size() == size) {
+            if (keyCpy.size() == size) {
                 correct = true;
                 break;
             }
@@ -46,13 +52,14 @@ namespace MyPgp {
             throw WrongKeySize();
         AES aes;
         std::string decrypt;
-        aes.keyExpansion(key);
-        for (std::size_t i = 0; i < cript.size(); i += BLOCKSIZE) {
-            std::string str = cript.substr(i, BLOCKSIZE);
+        aes.keyExpansion(keyCpy);
+        for (std::size_t i = 0; i < criptCpy.size(); i += BLOCKSIZE) {
+            std::string str = criptCpy.substr(i, BLOCKSIZE);
             decrypt += aes.decryptBlock(str);
             if (block == true)
                 break;
         }
+        decrypt.erase(decrypt.find_last_not_of('\0') + 1);
         return decrypt;
     }
 

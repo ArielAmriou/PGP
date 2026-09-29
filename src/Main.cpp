@@ -13,7 +13,8 @@
 int main(int ac, char **av)
 {
     try {
-        MyPgp::MyPgp pgp(ac, av);
+        std::vector<std::string> args(av + 1, av + ac);
+        MyPgp::MyPgp pgp(args);
         pgp.run();
     } catch (const Parser::Help &) {
         MyPgp::MyPgp::displayHelp();

@@ -36,13 +36,13 @@ namespace MyPgp {
 
     class MyPgp {
     public:
-        MyPgp(int ac, char **av);
+        MyPgp(std::vector<std::string> args);
 
         void run();
 
         static void displayHelp();
-        static std::string hexToStr(const std::string &hex);
-        static std::string strToHex(const std::string &str);
+        static std::string hexToStr(const std::string &hex, std::size_t wordSize = 0);
+        static std::string strToHex(const std::string &str, std::size_t wordSize = 0);
 
     private:
 
@@ -54,6 +54,7 @@ namespace MyPgp {
             bool parseKey;
         };
 
+        static std::string reorder(std::string s, std::size_t wordSize = 0);
         void parseArgs(std::vector<std::string> args);
         void launch();
         void parseMsg();
@@ -63,7 +64,6 @@ namespace MyPgp {
         bool _block = false;
         std::optional<std::string> _key;
         std::string _msg;
-        std::string _return;
         std::optional<long long> _p;
         std::optional<long long> _q;
 

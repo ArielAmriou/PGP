@@ -33,10 +33,8 @@ namespace MyPgp {
         {"pgp-aes", CryptoSystem::PGP_AES, nullptr, nullptr, false},
     }};
 
-    MyPgp::MyPgp(int ac, char **av)
+    MyPgp::MyPgp(std::vector<std::string> args)
     {
-        std::vector<std::string> args(av + 1, av + ac);
-
         parseArgs(args);
         if (_mode != Mode::GENERATE)
             parseMsg();
@@ -130,10 +128,10 @@ namespace MyPgp {
             [this](const auto &pair) { return pair.system == this->_cryptoSystem; });
         try {
             if (_mode == Mode::CIPHER && system->encrypt && _key) {
-                _return = system->encrypt(_msg, system->parseKey ? hexToStr(*_key) : *_key, _block);
-                _return = system->parseKey ? strToHex(_return) : _return;
-            } else if (_mode == Mode::DECIPHER && system->encrypt && _key)
-                _return = system->decrypt(hexToStr(_msg), system->parseKey ? hexToStr(*_key) : *_key, _block);
+                std::cout << system->encrypt(_msg, _key.value(), _block) << std::endl;
+            } else if (_mode == Mode::DECIPHER && system->decrypt && _key) {
+                std::cout << system->decrypt(_msg, _key.value(), _block) << std::endl;
+            }
         } catch (MyPgpException &e) {
             throw e;
         }
@@ -143,41 +141,39 @@ namespace MyPgp {
     {
         try {
             launch();
-            std::cout << _return << std::endl;
         } catch (MyPgpException &e) {
             throw e;
         }
     }
 
-    std::string MyPgp::hexToStr(const std::string &hex)
+    std::string MyPgp::reorder(std::string s, std::size_t wordSize)
     {
-        if (hex.size() % 2)
-            throw MyPgpException("This is not an hex number: \'" + hex + "\'.");
-        for (auto c : hex) {
-            if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
-                || (c >= '0' && c <= '9'))
-                continue;
-            throw MyPgpException("This is not an hex number: \'" + hex + "\'.");
+        if (wordSize == 0) {
+            std::reverse(s.begin(), s.end());
+            return s;
         }
-        std::string out;
-        
-        for (std::size_t i = 0; i + 1 < hex.size(); i += 2) {
-            std::istringstream iss(hex.substr(i, 2));
-            int byte = 0;
-            iss >> std::hex >> byte;
-            out += static_cast<char>(byte);
-        }
-        std::reverse(out.begin(), out.end());
-        return out;
+        for (std::size_t i = 0; i + wordSize <= s.size(); i += wordSize)
+            std::reverse(s.begin() + i, s.begin() + i + wordSize);
+        return s;
     }
 
-    std::string MyPgp::strToHex(const std::string &str)
+    std::string MyPgp::hexToStr(const std::string &hex, std::size_t wordSize)
     {
-        std::string cpy(str);
-        std::stringstream ss;
+        if (hex.size() % 2)
+            throw MyPgpException("This is not an hex number: '" + hex + "'.");
+        for (auto c : hex)
+            if (!std::isxdigit(static_cast<unsigned char>(c)))
+                throw MyPgpException("This is not an hex number: '" + hex + "'.");
+        std::string out;
+        for (std::size_t i = 0; i + 1 < hex.size(); i += 2)
+            out += static_cast<char>(std::stoi(hex.substr(i, 2), nullptr, 16));
+        return reorder(out, wordSize);
+    }
 
-        std::reverse(cpy.begin(), cpy.end());
-        for (unsigned char c : cpy)
+    std::string MyPgp::strToHex(const std::string &str, std::size_t wordSize)
+    {
+        std::stringstream ss;
+        for (unsigned char c : reorder(str, wordSize))
             ss << std::hex << std::setw(2) << std::setfill('0') << static_cast<unsigned>(c);
         return ss.str();
     }
