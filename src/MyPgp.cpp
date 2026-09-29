@@ -12,6 +12,7 @@
 #include <string_view>
 #include <utility>
 #include <unistd.h>
+#include <algorithm>
 
 #include "ArgsParser.hpp"
 #include "Exception.hpp"
@@ -137,4 +138,36 @@ namespace MyPgp {
         }
     }
 
+    std::string MyPgp::hexToStr(const std::string &hex)
+    {
+        if (hex.size() % 2)
+            throw MyPgpException("This is not an hex number: \'" + hex + "\'.");
+        for (auto c : hex) {
+            if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
+                || (c >= '0' && c <= '9'))
+                continue;
+            throw MyPgpException("This is not an hex number: \'" + hex + "\'.");
+        }
+        std::string out;
+        
+        for (std::size_t i = 0; i + 1 < hex.size(); i += 2) {
+            std::istringstream iss(hex.substr(i, 2));
+            int byte = 0;
+            iss >> std::hex >> byte;
+            out += static_cast<char>(byte);
+        }
+        std::reverse(out.begin(), out.end());
+        return out;
+    }
+
+    std::string MyPgp::strToHex(const std::string &str)
+    {
+        std::string cpy(str);
+        std::stringstream ss;
+
+        std::reverse(cpy.begin(), cpy.end());
+        for (unsigned char c : cpy)
+            ss << std::hex << std::setw(2) << std::setfill('0') << static_cast<unsigned>(c);
+        return ss.str();
+    }
 }

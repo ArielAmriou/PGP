@@ -40,6 +40,8 @@ namespace MyPgp {
         void run();
 
         static void displayHelp();
+        static std::string hexToStr(const std::string &hex);
+        static std::string strToHex(const std::string &str);
 
     private:
         void parseArgs(std::vector<std::string> args);
