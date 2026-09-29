@@ -10,6 +10,7 @@
 
 #include <criterion/criterion.h>
 #include <criterion/redirect.h>
+#include <unistd.h>
 
 #include "MyPgp.hpp"
 #include "Exception.hpp"
