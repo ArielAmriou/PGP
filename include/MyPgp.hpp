@@ -44,11 +44,13 @@ namespace MyPgp {
     private:
         void parseArgs(std::vector<std::string> args);
         void launch();
+        void parseMsg();
 
         CryptoSystem _cryptoSystem;
         Mode _mode;
         bool _block = false;
         std::optional<std::string> _key;
+        std::string _msg;
         std::optional<long long> _p;
         std::optional<long long> _q;
     };

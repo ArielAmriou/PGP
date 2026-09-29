@@ -11,6 +11,7 @@
 #include <iostream>
 #include <string_view>
 #include <utility>
+#include <unistd.h>
 
 #include "ArgsParser.hpp"
 #include "Exception.hpp"
@@ -36,6 +37,8 @@ namespace MyPgp {
         std::vector<std::string> args(av + 1, av + ac);
 
         parseArgs(args);
+        if (_mode != Mode::GENERATE)
+            parseMsg();
     }
 
     void MyPgp::parseArgs(std::vector<std::string> args)
@@ -96,6 +99,19 @@ namespace MyPgp {
 
         if (!args.empty())
             throw Parser::ArgsParserError("too many arguments");
+    }
+
+    void MyPgp::parseMsg()
+    {
+        std::string line;
+
+        while (std::getline(std::cin, line)) { 
+            _msg += line;
+            if (isatty(STDIN_FILENO))
+                return;
+            _msg += '\n';
+        }
+        _msg.pop_back();
     }
 
     void MyPgp::displayHelp()
