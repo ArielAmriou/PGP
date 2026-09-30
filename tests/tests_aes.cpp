@@ -29,10 +29,10 @@ Test(AES, Boostrap_Test_One_Block)
     std::string msg = "The Iron Throne.";
     std::string key = "game of thrones\n";
 
-    std::string crypt = aes.encrypt(msg + msg, key, true);
+    std::string crypt = aes.basicEncrypt(msg + msg, key, true);
     std::string cryptHex(toHex(crypt));
     cr_assert_str_eq(cryptHex.c_str(), "9c109c7de18f08884af1b6dd575a0402", "Check encrypt function, got %s", cryptHex.c_str());
-    std::string decrypt = aes.decrypt(crypt, key, true);
+    std::string decrypt = aes.basicDecrypt(crypt, key, true);
     cr_assert_str_eq(decrypt.c_str(), msg.c_str(), "Check decrypt function, got %s", cryptHex.c_str());
 }
 
@@ -42,10 +42,10 @@ Test(AES, Boostrap_Test_Two_Block)
     std::string msg = "The Iron Throne.The Iron Throne.";
     std::string key = "game of thrones\n";
 
-    std::string crypt = aes.encrypt(msg, key, false);
+    std::string crypt = aes.basicEncrypt(msg, key, false);
     std::string cryptHex(toHex(crypt));
     cr_assert_str_eq(cryptHex.c_str(), "9c109c7de18f08884af1b6dd575a04029c109c7de18f08884af1b6dd575a0402", "Check encrypt function, got %s", cryptHex.c_str());
-    std::string decrypt = aes.decrypt(crypt, key, false);
+    std::string decrypt = aes.basicDecrypt(crypt, key, false);
     cr_assert_str_eq(decrypt.c_str(), msg.c_str(), "Check decrypt function, got %s", cryptHex.c_str());
 }
 
@@ -56,7 +56,7 @@ Test(AES, Wrong_Key_Size_Encrypt)
     std::string key = "game of thrones";
 
     try {
-        std::string crypt = aes.encrypt(msg, key);
+        std::string crypt = aes.basicEncrypt(msg, key);
     } catch (MyPgp::MyPgpException &e) {
         cr_assert_str_eq(e.what(), "MyPgp Error: The key is not of the right size. Must be 16, 24 or 32 bytes.", "Check encrypt key size error handling: %s", e.what());
     }
@@ -69,7 +69,7 @@ Test(AES, Wrong_Key_Size_Decrypt)
     std::string key = "game of thrones";
 
     try {
-        std::string crypt = aes.decrypt(msg, key);
+        std::string crypt = aes.basicDecrypt(msg, key);
     } catch (MyPgp::MyPgpException &e) {
         cr_assert_str_eq(e.what(), "MyPgp Error: The key is not of the right size. Must be 16, 24 or 32 bytes.", "Check decrypt key size error handling: %s", e.what());
     }

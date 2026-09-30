@@ -7,10 +7,39 @@
 
 #include <algorithm>
 #include "AES.hpp"
+#include "MyPgp.hpp"
 
 namespace MyPgp {
 
     const std::string AES::encrypt(const std::string &msg, const std::string &key, const bool block)
+    {
+        std::string cpy = MyPgp::hexToStr(key, WORDSIZE);
+
+        try {
+            std::string crypt = basicEncrypt(msg, cpy, block);
+    
+            return MyPgp::strToHex(crypt, WORDSIZE);
+        } catch (MyPgpException &e) {
+            throw e;
+        }
+    }
+
+    const std::string AES::decrypt(const std::string &cript, const std::string &key, const bool block)
+    {
+        std::string keyCpy = MyPgp::hexToStr(key, WORDSIZE);
+        std::string criptCpy = MyPgp::hexToStr(cript, WORDSIZE);
+        
+        try {
+            std::string decrypt = basicDecrypt(criptCpy, keyCpy, block);
+            
+            decrypt.erase(decrypt.find_last_not_of('\0') + 1);
+            return decrypt;
+        } catch (MyPgpException &e) {
+            throw e;
+        }
+    }
+
+    const std::string AES::basicEncrypt(const std::string &msg, const std::string &key, const bool block)
     {
         bool correct = false;
         for (auto size : KEYSIZES) {
@@ -33,7 +62,7 @@ namespace MyPgp {
         return crypt;
     }
 
-    const std::string AES::decrypt(const std::string &cript, const std::string &key, const bool block)
+    const std::string AES::basicDecrypt(const std::string &cript, const std::string &key, const bool block)
     {
         bool correct = false;
         for (auto size : KEYSIZES) {

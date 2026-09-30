@@ -6,3 +6,5 @@ screenshots
 *.o
 *.a
 tests_run*
+message
+ciphered
