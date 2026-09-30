@@ -26,7 +26,7 @@ namespace MyPgp {
             seed = MyPgp::fromLittleEndianHex(args[1]).convert_to<unsigned int>();
         cpp_int tmpKey = getRange(2, infos[ENCRYPT_PRIME], seed);
         cpp_int c1 = powm(infos[ENCRYPT_GENERATOR], tmpKey, infos[ENCRYPT_PRIME]);
-        std::string crypt = MyPgp::toLittleEndianHex(c1) + "\n";
+        std::string crypt = MyPgp::toLittleEndianHex(c1) + "-";
         cpp_int secret = powm(infos[ENCRYPT_PUBLIC], tmpKey, infos[ENCRYPT_PRIME]);
         std::size_t byteLen = msb(infos[ENCRYPT_PRIME] - 1) / BYTESIZE + 1;
         for (unsigned char ch : msg) {
@@ -35,6 +35,8 @@ namespace MyPgp {
                 throw MyPgpException("Prime too small for this message.");
             cpp_int c2 = (m * secret) % infos[ENCRYPT_PRIME];
             crypt += MyPgp::toLittleEndianHex(c2, byteLen);
+            if (block)
+                break;
         }
         return crypt;
     }
@@ -59,6 +61,8 @@ namespace MyPgp {
             if (m > 255)
                 throw MyPgpException("Decryption failed.");
             decrypt += static_cast<char>(m.convert_to<int>());
+            if (block)
+                break;
         }
         return decrypt;
     }
