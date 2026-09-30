@@ -35,6 +35,19 @@ namespace MyPgp {
             NB_ENCRYPT_INFO
         };
 
+        enum DECRYPT_MSG_INFO {
+            DECRYPT_C1,
+            DECRYPT_C2,
+            NB_DECRYPT_MSG_INFO
+        };
+
+        enum DECRYPT_KEY_INFO {
+            DECRYPT_PRIME,
+            DECRYPT_GENERATOR,
+            DECRYPT_PRIVATE,
+            NB_DECRYPT_KEY_INFO
+        };
+
         static cpp_int findGenerator(const cpp_int &p);
         static cpp_int getRange(const cpp_int &min, const cpp_int &max,
             const std::optional<unsigned int> &seed);
