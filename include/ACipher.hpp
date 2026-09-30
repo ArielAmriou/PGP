@@ -24,6 +24,10 @@ namespace MyPgp {
             [[maybe_unused]] const std::string key,
             [[maybe_unused]] const bool block = false) { return ""; };
         
+        static void keyGen([[maybe_unused]] const std::string &p) {};
+        
+        static void keyGen([[maybe_unused]]const std::string &p,
+            [[maybe_unused]] const std::string &q) {};
     };
 
 };

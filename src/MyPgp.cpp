@@ -20,17 +20,19 @@
 
 #include "Xor.hpp"
 #include "AES.hpp"
+#include "ElGamal.hpp"
 #include <iostream>
 #include <bits/stdc++.h>
 
 namespace MyPgp {
 
-    const std::array<MyPgp::CryptoEntry, 5> MyPgp::CRYPTO_SYSTEMS{{
-        {"xor", CryptoSystem::XOR, &Xor::encrypt, &Xor::decrypt, true},
-        {"aes", CryptoSystem::AES, &AES::encrypt, &AES::decrypt, true},
-        {"rsa", CryptoSystem::RSA, nullptr, nullptr, true},
-        {"pgp-xor", CryptoSystem::PGP_XOR, nullptr, nullptr, false},
-        {"pgp-aes", CryptoSystem::PGP_AES, nullptr, nullptr, false},
+    const std::array<MyPgp::CryptoEntry, 6> MyPgp::CRYPTO_SYSTEMS{{
+        {"xor", CryptoSystem::XOR, &Xor::encrypt, &Xor::decrypt},
+        {"aes", CryptoSystem::AES, &AES::encrypt, &AES::decrypt},
+        {"rsa", CryptoSystem::RSA, nullptr, nullptr},
+        {"pgp-xor", CryptoSystem::PGP_XOR, nullptr, nullptr},
+        {"pgp-aes", CryptoSystem::PGP_AES, nullptr, nullptr},
+        {"elgamal", CryptoSystem::ELGAMAL, nullptr, nullptr}
     }};
 
     MyPgp::MyPgp(std::vector<std::string> args)
@@ -62,12 +64,13 @@ namespace MyPgp {
             _mode = Mode::DECIPHER;
         if (generate) {
             _mode = Mode::GENERATE;
-            auto values = Parser::ArgsParser::getArgList<long long>(args, "-g");
-            if (values.size() != 2)
+            auto values = Parser::ArgsParser::getArgList<std::string>(args, "-g");
+            if (values.empty() || values.size() > 2)
                 throw Parser::ArgsParserError(
-                    "-g requires exactly two arguments P and Q");
+                    "-g requires one or two arguments P and Q for rsa");
             _p = values[0];
-            _q = values[1];
+            if (values.size() == 2)
+                _q = values[1];
         }
 
         if (args.empty())
@@ -81,8 +84,9 @@ namespace MyPgp {
         _cryptoSystem = system->system;
         args.erase(args.begin());
 
-        if (_mode == Mode::GENERATE && _cryptoSystem != CryptoSystem::RSA)
-            throw Parser::ArgsParserError("-g mode is only available for rsa");
+        if (_mode == Mode::GENERATE && !(_cryptoSystem == CryptoSystem::RSA
+            || _cryptoSystem == CryptoSystem::ELGAMAL))
+            throw Parser::ArgsParserError("-g mode is only available for rsa and elgamal");
 
         if (_mode == Mode::GENERATE && !args.empty())
             throw Parser::ArgsParserError(
@@ -131,6 +135,8 @@ namespace MyPgp {
                 std::cout << system->encrypt(_msg, _key.value(), _block) << std::endl;
             } else if (_mode == Mode::DECIPHER && system->decrypt && _key) {
                 std::cout << system->decrypt(_msg, _key.value(), _block) << std::endl;
+            } else {
+                keyGen();
             }
         } catch (MyPgpException &e) {
             throw e;
@@ -144,6 +150,12 @@ namespace MyPgp {
         } catch (MyPgpException &e) {
             throw e;
         }
+    }
+
+    void MyPgp::keyGen()
+    {
+        if (_cryptoSystem == CryptoSystem::ELGAMAL && _p)
+            ElGamal::keyGen(_p.value());
     }
 
     std::string MyPgp::reorder(std::string s, std::size_t wordSize)
@@ -176,5 +188,32 @@ namespace MyPgp {
         for (unsigned char c : reorder(str, wordSize))
             ss << std::hex << std::setw(2) << std::setfill('0') << static_cast<unsigned>(c);
         return ss.str();
+    }
+
+    cpp_int MyPgp::fromLittleEndianHex(const std::string &leHex)
+    {
+        std::string beHex = MyPgp::strToHex(MyPgp::hexToStr(leHex, 0), 1);
+        return cpp_int("0x" + beHex);
+    }
+
+    std::string MyPgp::toLittleEndianHex(const cpp_int &n)
+    {
+        std::ostringstream ss;
+        ss << std::hex << n;
+        std::string hex = ss.str();
+        if (hex.size() % 2)
+            hex = "0" + hex;
+        return MyPgp::strToHex(MyPgp::hexToStr(hex, 0), 1);
+    }
+
+    std::vector<std::string> MyPgp::splitString(const std::string &str, char delim)
+    {
+        std::stringstream ss(str);
+        std::string token;
+        std::vector<std::string> tab;
+
+        while (getline(ss, token, delim))
+            tab.push_back(token);
+        return tab;
     }
 }
