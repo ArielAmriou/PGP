@@ -19,6 +19,9 @@ SRC = 	$(addprefix src/, 						\
 				$(addprefix AES/, 				\
 					AES.cpp						\
 				)								\
+				$(addprefix ElGamal/, 			\
+					ElGamal.cpp					\
+				)								\
 			)									\
     	)
 
@@ -26,6 +29,7 @@ HEADERS = 	$(addprefix -iquote include/, 		\
 			/									\
 			Cript/Xor/							\
 			Cript/AES/							\
+			Cript/ElGamal/ 						\
     	)
 
 PATH_UNI = 	$(addprefix tests/, 				\
@@ -38,7 +42,7 @@ OBJ = $(SRC:.cpp=.o) $(MAIN:.cpp=.o)
 
 TESTS = tests_run
 
-CXXFLAGS = -Wall -Wextra --std=c++20
+CXXFLAGS = -Wall -Wextra --std=c++26
 
 CPPFLAGS = $(HEADERS)
 
