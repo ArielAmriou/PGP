@@ -49,7 +49,7 @@ namespace MyPgp {
         static std::string strToHex(const std::string &str, std::size_t wordSize = 0);
         static std::string reorder(std::string s, std::size_t wordSize = 0);
         static cpp_int fromLittleEndianHex(const std::string &hex);
-        static std::string toLittleEndianHex(const cpp_int &n);
+        static std::string toLittleEndianHex(const cpp_int &n, std::size_t byteLen = 0);
         static std::vector<std::string> splitString(const std::string &str, char delim);
 
     private:

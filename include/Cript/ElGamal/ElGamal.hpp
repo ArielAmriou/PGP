@@ -9,12 +9,14 @@
 #define ELGAMAL_HPP_
 
 #include <boost/multiprecision/cpp_int.hpp>
+#include <optional>
 #include "ACipher.hpp"
 
 namespace MyPgp {
 
     using boost::multiprecision::cpp_int;
     using boost::multiprecision::powm;
+    using boost::multiprecision::msb;
 
     class ElGamal : public ACipher {
     public:
@@ -26,8 +28,20 @@ namespace MyPgp {
         static void keyGen(const std::string &p);
 
     private:
-        static cpp_int findGenerator(const cpp_int &p);
+        enum ENCRYPT_INFO {
+            ENCRYPT_PRIME,
+            ENCRYPT_GENERATOR,
+            ENCRYPT_PUBLIC,
+            NB_ENCRYPT_INFO
+        };
 
+        static cpp_int findGenerator(const cpp_int &p);
+        static cpp_int getRange(const cpp_int &min, const cpp_int &max,
+            const std::optional<unsigned int> &seed);
+        static std::vector<cpp_int> parseInfo(
+            const std::vector<std::string> &infos, std::size_t nb);
+
+        static constexpr std::size_t BYTESIZE = 8;
     };
 }
 

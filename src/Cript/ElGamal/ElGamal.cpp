@@ -5,7 +5,6 @@
 ** ElGamal
 */
 
-#include <optional>
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int_distribution.hpp>
 #include "ElGamal.hpp"
@@ -16,7 +15,25 @@ namespace MyPgp {
 
     const std::string ElGamal::encrypt(const std::string &msg, const std::string &key, const bool block)
     {
-        return "";
+        auto args = MyPgp::splitString(key, ':');
+
+        if (args.empty() || args.size() > 2)
+            throw MyPgpException("Wrong args.");
+        auto infos = parseInfo(MyPgp::splitString(args[0], '-'), ENCRYPT_INFO::NB_ENCRYPT_INFO);
+        std::optional<unsigned int> seed;
+        if (args.size() == 2)
+            seed = MyPgp::fromLittleEndianHex(args[1]).convert_to<unsigned int>();
+        cpp_int tmpKey = getRange(2, infos[ENCRYPT_PRIME], seed);
+        cpp_int c1 = powm(infos[ENCRYPT_GENERATOR], tmpKey, infos[ENCRYPT_PRIME]);
+        std::string crypt = MyPgp::toLittleEndianHex(c1) + "\n";
+        cpp_int secret = powm(infos[ENCRYPT_PUBLIC], tmpKey, infos[ENCRYPT_PRIME]);
+        std::size_t byteLen = msb(infos[ENCRYPT_PRIME] - 1) / BYTESIZE + 1;
+        for (unsigned char ch : msg) {
+            cpp_int m = ch;
+            cpp_int c2 = (m * secret) % infos[ENCRYPT_PRIME];
+            crypt += MyPgp::toLittleEndianHex(c2, byteLen);
+        }
+        return crypt;
     }
         
     const std::string ElGamal::decrypt(const std::string &cript, const std::string &key, const bool block)
@@ -34,15 +51,13 @@ namespace MyPgp {
             std::optional<unsigned int> seed;
             if (args.size() == 2)
                 seed = MyPgp::fromLittleEndianHex(args[1]).convert_to<unsigned int>();
-            boost::random::mt19937 gen(seed ? seed.value() : std::time(nullptr));
-            boost::random::uniform_int_distribution<cpp_int> distrib(2, prime - 2);
             try {
                 cpp_int generator = findGenerator(prime);
-                cpp_int privateKey = distrib(gen);
+                cpp_int privateKey = getRange(2, prime - 1, seed);
                 cpp_int publicKey = powm(generator, privateKey, prime);
                 std::cout << "Generator: " << MyPgp::toLittleEndianHex(generator) << "\n";
                 std::cout << "Private key: " << MyPgp::toLittleEndianHex(privateKey) << "\n";
-                std::cout << "Public key: " << MyPgp::toLittleEndianHex(publicKey) << "\n";
+                std::cout << "Public key: " << MyPgp::toLittleEndianHex(publicKey) << std::endl;
             } catch (MyPgpException &e) {
                 throw e;
             }
@@ -57,5 +72,25 @@ namespace MyPgp {
                 return g;
         }
         throw MyPgpException("No generator found");
+    }
+
+    cpp_int ElGamal::getRange(const cpp_int &min, const cpp_int &max,
+        const std::optional<unsigned int> &seed)
+    {
+        boost::random::mt19937 gen(seed ? seed.value() : std::time(nullptr));
+        boost::random::uniform_int_distribution<cpp_int> distrib(min, max);
+        return distrib(gen);
+    }
+
+    std::vector<cpp_int> ElGamal::parseInfo(
+        const std::vector<std::string> &infos, std::size_t nb)
+    {
+        std::vector<cpp_int> values;
+  
+        if (infos.size() != nb)
+            throw MyPgpException("Wrong infos.");
+        for (const auto &info : infos)
+            values.push_back(MyPgp::fromLittleEndianHex(info));
+        return values;
     }
 }

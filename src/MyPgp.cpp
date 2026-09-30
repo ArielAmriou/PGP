@@ -32,7 +32,7 @@ namespace MyPgp {
         {"rsa", CryptoSystem::RSA, nullptr, nullptr},
         {"pgp-xor", CryptoSystem::PGP_XOR, nullptr, nullptr},
         {"pgp-aes", CryptoSystem::PGP_AES, nullptr, nullptr},
-        {"elgamal", CryptoSystem::ELGAMAL, nullptr, nullptr}
+        {"elgamal", CryptoSystem::ELGAMAL, &ElGamal::encrypt, &ElGamal::decrypt}
     }};
 
     MyPgp::MyPgp(std::vector<std::string> args)
@@ -196,12 +196,14 @@ namespace MyPgp {
         return cpp_int("0x" + beHex);
     }
 
-    std::string MyPgp::toLittleEndianHex(const cpp_int &n)
+    std::string MyPgp::toLittleEndianHex(const cpp_int &n, std::size_t byteLen)
     {
         std::ostringstream ss;
         ss << std::hex << n;
         std::string hex = ss.str();
         if (hex.size() % 2)
+            hex = "0" + hex;
+        while (hex.size() < byteLen * 2)
             hex = "0" + hex;
         return MyPgp::strToHex(MyPgp::hexToStr(hex, 0), 1);
     }
