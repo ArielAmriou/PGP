@@ -38,14 +38,30 @@ namespace MyPgp {
     MyPgp::MyPgp(std::vector<std::string> args)
     {
         parseArgs(args);
-        if (_mode != Mode::GENERATE)
+        if (_mode != Mode::GENERATE) {
             parseMsg();
+            if (_block && _mode == Mode::CIPHER && _key
+                && _msg.size() != _key.value().size() / 2)
+                throw MyPgpException(
+                    "The message and the symmetric key must be the same size");
+        }
     }
 
     void MyPgp::parseArgs(std::vector<std::string> args)
     {
         if (Parser::ArgsParser::isArg(args, "-h"))
             throw Parser::Help();
+
+        if (args.empty())
+            throw Parser::Help();
+
+        auto system = std::find_if(CRYPTO_SYSTEMS.begin(), CRYPTO_SYSTEMS.end(),
+            [&args](const auto &pair) { return pair.name == args.front(); });
+        if (system == CRYPTO_SYSTEMS.end())
+            throw Parser::ArgsParserError(
+                args.front() + " is not a valid method");
+        _cryptoSystem = system->system;
+        args.erase(args.begin());
 
         _block = Parser::ArgsParser::isArg(args, "-b");
 
@@ -65,32 +81,23 @@ namespace MyPgp {
         if (generate) {
             _mode = Mode::GENERATE;
             auto values = Parser::ArgsParser::getArgList<std::string>(args, "-g");
-            if (values.empty() || values.size() > 2)
+            if (values.size() > 2)
                 throw Parser::ArgsParserError(
-                    "-g requires one or two arguments P and Q for rsa");
+                    "-g requires one or two args");
             _p = values[0];
             if (values.size() == 2)
                 _q = values[1];
+            if (values.size() == 1 && _cryptoSystem == CryptoSystem::RSA)
+                throw Parser::ArgsParserError(
+                    "-g requires two arguments P and Q for rsa");
+            if (values.size() == 2 && _cryptoSystem == CryptoSystem::ELGAMAL)
+                throw Parser::ArgsParserError(
+                    "-g requires one arguments P for ElGamal");
         }
-
-        if (args.empty())
-            throw Parser::Help();
-
-        auto system = std::find_if(CRYPTO_SYSTEMS.begin(), CRYPTO_SYSTEMS.end(),
-            [&args](const auto &pair) { return pair.name == args.front(); });
-        if (system == CRYPTO_SYSTEMS.end())
-            throw Parser::ArgsParserError(
-                args.front() + " is not a valid method");
-        _cryptoSystem = system->system;
-        args.erase(args.begin());
 
         if (_mode == Mode::GENERATE && !(_cryptoSystem == CryptoSystem::RSA
             || _cryptoSystem == CryptoSystem::ELGAMAL))
             throw Parser::ArgsParserError("-g mode is only available for rsa and elgamal");
-
-        if (_mode == Mode::GENERATE && !args.empty())
-            throw Parser::ArgsParserError(
-                "key is incompatible with -g mode");
 
         if (_mode != Mode::GENERATE) {
             if (args.empty())
@@ -98,6 +105,13 @@ namespace MyPgp {
                     "key is mandatory for -c and -d mode");
             _key = args.front();
             args.erase(args.begin());
+        }
+
+        if (_block) {
+            if (_cryptoSystem == CryptoSystem::RSA)
+                throw Parser::ArgsParserError("-b mode is not available for rsa");
+            if (_mode == Mode::GENERATE)
+                throw Parser::ArgsParserError("-b mode is not compatible with -g");
         }
 
         if (!args.empty())
