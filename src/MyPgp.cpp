@@ -38,14 +38,30 @@ namespace MyPgp {
     MyPgp::MyPgp(std::vector<std::string> args)
     {
         parseArgs(args);
-        if (_mode != Mode::GENERATE)
+        if (_mode != Mode::GENERATE) {
             parseMsg();
+            if (_block && _mode == Mode::CIPHER && _key
+                && _msg.size() != _key.value().size() / 2)
+                throw Parser::ArgsParserError(
+                    "The message and the symmetric key must be the same size");
+        }
     }
 
     void MyPgp::parseArgs(std::vector<std::string> args)
     {
         if (Parser::ArgsParser::isArg(args, "-h"))
             throw Parser::Help();
+
+        if (args.empty())
+            throw Parser::Help();
+
+        auto system = std::find_if(CRYPTO_SYSTEMS.begin(), CRYPTO_SYSTEMS.end(),
+            [&args](const auto &pair) { return pair.name == args.front(); });
+        if (system == CRYPTO_SYSTEMS.end())
+            throw Parser::ArgsParserError(
+                args.front() + " is not a valid method");
+        _cryptoSystem = system->system;
+        args.erase(args.begin());
 
         _block = Parser::ArgsParser::isArg(args, "-b");
 
@@ -73,17 +89,6 @@ namespace MyPgp {
                 _q = values[1];
         }
 
-        if (args.empty())
-            throw Parser::Help();
-
-        auto system = std::find_if(CRYPTO_SYSTEMS.begin(), CRYPTO_SYSTEMS.end(),
-            [&args](const auto &pair) { return pair.name == args.front(); });
-        if (system == CRYPTO_SYSTEMS.end())
-            throw Parser::ArgsParserError(
-                args.front() + " is not a valid method");
-        _cryptoSystem = system->system;
-        args.erase(args.begin());
-
         if (_mode == Mode::GENERATE && !(_cryptoSystem == CryptoSystem::RSA
             || _cryptoSystem == CryptoSystem::ELGAMAL))
             throw Parser::ArgsParserError("-g mode is only available for rsa and elgamal");
@@ -99,6 +104,9 @@ namespace MyPgp {
             _key = args.front();
             args.erase(args.begin());
         }
+
+        if (_block && _cryptoSystem == CryptoSystem::RSA)
+            throw Parser::ArgsParserError("-b mode is not available for rsa");
 
         if (!args.empty())
             throw Parser::ArgsParserError("too many arguments");
