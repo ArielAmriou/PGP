@@ -65,6 +65,16 @@ static std::string readFile(std::string filename)
     return content;
 }
 
+Test(Block, Key_Wrong_Size, .init = redirect_all_std)
+{
+    std::string methode = "xor";
+    std::string key = "576861742069732064656164206d6179206e657665722064696565";
+
+    auto result = readFile("ciphered_" + methode) + "\n";
+    std::string value = testMain({methode, "-c", "-b", key}, "message_" + methode);
+    cr_assert_str_eq(value.c_str(), "MyPgp Error: The message and the symmetric key must be the same size");
+}
+
 Test(XOR, test_if_encryption_work, .init = redirect_all_std)
 {
     std::string methode = "xor";
