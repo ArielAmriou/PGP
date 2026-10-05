@@ -28,12 +28,12 @@
 namespace MyPgp {
 
     const std::array<MyPgp::CryptoEntry, 6> MyPgp::CRYPTO_SYSTEMS{{
-        {"xor", CryptoSystem::XOR, &Xor::encrypt, &Xor::decrypt},
-        {"aes", CryptoSystem::AES, &AES::encrypt, &AES::decrypt},
-        {"rsa", CryptoSystem::RSA, &RSA::encrypt, &RSA::decrypt},
-        {"pgp-xor", CryptoSystem::PGP_XOR, nullptr, nullptr},
-        {"pgp-aes", CryptoSystem::PGP_AES, nullptr, nullptr},
-        {"elgamal", CryptoSystem::ELGAMAL, &ElGamal::encrypt, &ElGamal::decrypt}
+        {"xor", CryptoSystem::XOR, Xor::encrypt, Xor::decrypt},
+        {"aes", CryptoSystem::AES, AES::encrypt, AES::decrypt},
+        {"rsa", CryptoSystem::RSA, RSA::encrypt, RSA::decrypt},
+        {"pgp-xor", CryptoSystem::PGP_XOR, encrypt<Xor::encrypt>, decrypt<Xor::decrypt>},
+        {"pgp-aes", CryptoSystem::PGP_AES, encrypt<AES::encrypt>, decrypt<AES::decrypt>},
+        {"elgamal", CryptoSystem::ELGAMAL, ElGamal::encrypt, ElGamal::decrypt}
     }};
 
     MyPgp::MyPgp(std::vector<std::string> args)

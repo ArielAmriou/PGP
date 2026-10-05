@@ -11,8 +11,11 @@
     #include <optional>
     #include <string>
     #include <vector>
+    #include <functional>
     #include <boost/multiprecision/cpp_int.hpp>
     #include "ACipher.hpp"
+    #include "RSA.hpp"
+    #include "Exception.hpp"
 
 namespace MyPgp {
 
@@ -38,7 +41,7 @@ namespace MyPgp {
         GENERATE
     };
 
-    class MyPgp {
+    class MyPgp : public ACipher {
     public:
         MyPgp(std::vector<std::string> args);
 
@@ -52,7 +55,35 @@ namespace MyPgp {
         static std::string toLittleEndianHex(const cpp_int &n, std::size_t byteLen = 0);
         static std::vector<std::string> splitString(const std::string &str, char delim);
 
+        template<ACipher::CipherFn func>
+        static const std::string encrypt(const std::string &msg, const std::string &key, const bool block = false)
+        {
+            auto split = splitString(key, ':');
+            if (split.size() != 2)
+                throw MyPgpException("Wrong args.");
+            auto encryptMsg = func(msg, split[SYM_KEY], block);
+            auto raw = hexToStr(split[SYM_KEY]);
+            auto encryptKey = RSA::encrypt(std::string(raw.rbegin(), raw.rend()), split[ASYM_KEY], block);
+            return std::string(encryptKey + "\n" + encryptMsg);
+        }
+
+        template<ACipher::CipherFn func>
+        static const std::string decrypt(const std::string &msg, const std::string &key, const bool block = false)
+        {
+            auto split = splitString(key, ':');
+            if (split.size() != 2)
+                throw MyPgpException("Wrong args.");
+            auto raw = RSA::decrypt(split[SYM_KEY], split[ASYM_KEY], block);
+            auto decryptKey = strToHex(std::string(raw.rbegin(), raw.rend()));
+            return func(msg, decryptKey, block);
+        }
+
     private:
+
+        enum CYPHER_INFO {
+            SYM_KEY,
+            ASYM_KEY,
+        };
 
         struct CryptoEntry {
             std::string_view name;
