@@ -41,8 +41,10 @@ namespace MyPgp {
         parseArgs(args);
         if (_mode != Mode::GENERATE) {
             parseMsg();
-            if (_block && _mode == Mode::CIPHER && _key
-                && _msg.size() != _key.value().size() / 2)
+            auto size = _key.value().find_first_of(":");
+            if (size == std::string::npos)
+                size = _key.value().size();
+            if (_block && _mode == Mode::CIPHER && _msg.size() != size / 2)
                 throw MyPgpException(
                     "The message and the symmetric key must be the same size");
         }
