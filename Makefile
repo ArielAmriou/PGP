@@ -22,6 +22,9 @@ SRC = 	$(addprefix src/, 						\
 				$(addprefix ElGamal/, 			\
 					ElGamal.cpp					\
 				)								\
+				$(addprefix RSA/, 				\
+					RSA.cpp						\
+				)								\
 			)									\
     	)
 
@@ -30,6 +33,7 @@ HEADERS = 	$(addprefix -iquote include/, 		\
 			Cript/Xor/							\
 			Cript/AES/							\
 			Cript/ElGamal/ 						\
+			Cript/RSA/ 							\
     	)
 
 PATH_UNI = 	$(addprefix tests/, 				\
@@ -37,6 +41,7 @@ PATH_UNI = 	$(addprefix tests/, 				\
 				tests_aes.cpp 					\
 				tests_functionnal.cpp 			\
 				tests_elgamal.cpp 				\
+				tests_rsa.cpp 					\
 			)
 
 OBJ = $(SRC:.cpp=.o) $(MAIN:.cpp=.o)

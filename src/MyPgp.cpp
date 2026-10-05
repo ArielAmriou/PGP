@@ -21,6 +21,7 @@
 #include "Xor.hpp"
 #include "AES.hpp"
 #include "ElGamal.hpp"
+#include "RSA.hpp"
 #include <iostream>
 #include <bits/stdc++.h>
 
@@ -29,7 +30,7 @@ namespace MyPgp {
     const std::array<MyPgp::CryptoEntry, 6> MyPgp::CRYPTO_SYSTEMS{{
         {"xor", CryptoSystem::XOR, &Xor::encrypt, &Xor::decrypt},
         {"aes", CryptoSystem::AES, &AES::encrypt, &AES::decrypt},
-        {"rsa", CryptoSystem::RSA, nullptr, nullptr},
+        {"rsa", CryptoSystem::RSA, &RSA::encrypt, &RSA::decrypt},
         {"pgp-xor", CryptoSystem::PGP_XOR, nullptr, nullptr},
         {"pgp-aes", CryptoSystem::PGP_AES, nullptr, nullptr},
         {"elgamal", CryptoSystem::ELGAMAL, &ElGamal::encrypt, &ElGamal::decrypt}
