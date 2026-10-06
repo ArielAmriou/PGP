@@ -42,6 +42,7 @@ PATH_UNI = 	$(addprefix tests/, 				\
 				tests_functionnal.cpp 			\
 				tests_elgamal.cpp 				\
 				tests_rsa.cpp 					\
+				tests_pgp.cpp 					\
 			)
 
 OBJ = $(SRC:.cpp=.o) $(MAIN:.cpp=.o)
