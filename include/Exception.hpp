@@ -25,6 +25,16 @@ namespace MyPgp {
     private:
         std::string _str;
     };
+
+    class GenErrorE : public MyPgpException {
+    public:
+        GenErrorE() : MyPgpException("Error while generating e.") {};
+    };
+
+    class KeyParsingError : public MyPgpException {
+    public:
+        KeyParsingError() : MyPgpException("Error parsing given key.") {};
+    };
 }
 
 #endif /* !EXCEPTION_HPP_ */
