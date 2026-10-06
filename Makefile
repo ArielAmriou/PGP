@@ -44,6 +44,7 @@ PATH_UNI = 	$(addprefix tests/, 				\
 				tests_elgamal.cpp 				\
 				tests_rsa.cpp 					\
 				tests_pgp.cpp 					\
+				tests_error_handling.cpp 		\
 			)
 
 OBJ = $(SRC:.cpp=.o) $(MAIN:.cpp=.o)
