@@ -174,6 +174,8 @@ namespace MyPgp {
     {
         if (_cryptoSystem == CryptoSystem::ELGAMAL && _p)
             ElGamal::keyGen(_p.value());
+        if (_cryptoSystem == CryptoSystem::RSA && _p && _q)
+            RSA::keyGen(_p.value(), _q.value());
     }
 
     std::string MyPgp::reorder(std::string s, std::size_t wordSize)

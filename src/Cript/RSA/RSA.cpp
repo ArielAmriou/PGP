@@ -9,6 +9,8 @@
 #include "MyPgp.hpp"
 #include "Exception.hpp"
 
+#include <boost/integer/mod_inverse.hpp>
+
 namespace MyPgp {
 
     const std::pair<cpp_int, cpp_int> RSA::parseKey(std::string const &k)
@@ -23,12 +25,12 @@ namespace MyPgp {
 
     const cpp_int RSA::genFermat(std::size_t const k)
     {
-        return static_cast<cpp_int>(std::pow(2, std::pow(2, k) + 1));
+        return static_cast<cpp_int>(std::pow(2, std::pow(2, k)) + 1);
     }
 
     const cpp_int RSA::genE(cpp_int const &l)
     {
-        for (std::size_t k = MAX_FERMAT_K; k >= 0; --k) {
+        for (int k = MAX_FERMAT_K; k >= 0; --k) {
             auto e = genFermat(k);
 
             if (e < l && boost::multiprecision::gcd(e, l) == 1)
@@ -45,12 +47,14 @@ namespace MyPgp {
     void RSA::keyGen(const std::string &p, const std::string &q)
     {
         std::pair<cpp_int, cpp_int> primes = {MyPgp::fromLittleEndianHex(p), MyPgp::fromLittleEndianHex(q)};
-        cpp_int n = primes.first * primes.second;
-
+        
+        std::string n = MyPgp::toLittleEndianHex(primes.first * primes.second);
         cpp_int l = lambda(primes.first, primes.second);
         cpp_int e = genE(l);
+        std::string eHex = MyPgp::toLittleEndianHex(e);
 
-
+        std::cout << "public key: " << MyPgp::toLittleEndianHex(e) << "-" << n << std::endl;
+        std::cout << "private key: " << MyPgp::toLittleEndianHex(boost::integer::mod_inverse(e, l)) << "-" << n << std::endl;
     }
 
     const std::string RSA::encrypt(const std::string &msg, const std::string &key, [[maybe_unused]] const bool block)
