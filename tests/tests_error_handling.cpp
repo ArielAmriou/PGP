@@ -98,6 +98,12 @@ Test(Parsing, No_Key)
     cr_assert_str_eq(value.c_str(), "Arguments error: key is mandatory for -c and -d mode");
 }
 
+Test(Parsing, Empty_Key)
+{
+    std::string value = testMain({"xor", "-c", ""});
+    cr_assert_str_eq(value.c_str(), "Arguments error: key is mandatory for -c and -d mode");
+}
+
 Test(Parsing, Wrong_methode_generate)
 {
     std::string value = testMain({"xor", "-g", "d3", "e3"});

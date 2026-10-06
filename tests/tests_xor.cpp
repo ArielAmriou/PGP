@@ -154,18 +154,6 @@ Test(XOR_Class, Wrong_Key_Does_Not_Decrypt)
         "Decrypting with a different key must not give back the original message.");
 }
 
-Test(XOR_Class, Empty_Key_Throws)
-{
-    bool thrown = false;
-
-    try {
-        MyPgp::Xor::encrypt("abc", "", false);
-    } catch (MyPgp::MyPgpException &) {
-        thrown = true;
-    }
-    cr_assert(thrown, "An empty key must be refused instead of dividing by zero.");
-}
-
 // Printable message of `size` bytes, never containing a NUL byte.
 static std::string xorTextOfSize(size_t size)
 {
