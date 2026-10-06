@@ -35,6 +35,7 @@ HEADERS = 	$(addprefix -iquote include/, 		\
 PATH_UNI = 	$(addprefix tests/, 				\
 				tests_init.cpp 					\
 				tests_aes.cpp 					\
+				tests_xor.cpp 					\
 				tests_functionnal.cpp 			\
 				tests_elgamal.cpp 				\
 				tests_error_handling.cpp 		\
