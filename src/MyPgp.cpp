@@ -100,7 +100,7 @@ namespace MyPgp {
             throw Parser::ArgsParserError("-g mode is only available for rsa and elgamal");
 
         if (_mode != Mode::GENERATE) {
-            if (args.empty())
+            if (args.empty() || args.front().empty())
                 throw Parser::ArgsParserError(
                     "key is mandatory for -c and -d mode");
             _key = args.front();
