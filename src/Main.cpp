@@ -18,7 +18,7 @@ int main(int ac, char **av)
         pgp.run();
     } catch (const Parser::Help &) {
         MyPgp::MyPgp::displayHelp();
-        return MyPgp::EPISUCCESS;
+        return ac == 1 ? MyPgp::EPIERROR: MyPgp::EPISUCCESS;
     } catch (const Parser::ArgsParserError &e) {
         std::cerr << e.what() << std::endl;
         return MyPgp::EPIERROR;
