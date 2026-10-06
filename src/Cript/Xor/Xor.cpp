@@ -39,13 +39,14 @@ namespace MyPgp {
         std::size_t criptlen = criptCpy.length();
         std::size_t keylen = keyCpy.length();
         std::string msg;
-        
-        for (std::size_t i = 0; i < criptlen ; ++i) {
+
+        while (criptlen > 0 && criptCpy[criptlen - 1] == '\0')
+            --criptlen;
+        for (std::size_t i = 0; i < criptlen; ++i) {
             unsigned int byte;
             byte = criptCpy[i];
             msg.push_back(static_cast<char>(byte) ^ keyCpy[i % keylen]);
         }
-        msg.erase(msg.find_last_not_of('\0') + 1);
         return msg;
     }
 };
