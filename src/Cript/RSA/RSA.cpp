@@ -53,7 +53,7 @@ namespace MyPgp {
 
     }
 
-    const std::string RSA::encrypt(const std::string &msg, const std::string &key, const bool block)
+    const std::string RSA::encrypt(const std::string &msg, const std::string &key, [[maybe_unused]] const bool block)
     {
         auto k = parseKey(key);
         auto m = MyPgp::fromLittleEndianHex(MyPgp::strToHex(std::string(msg.rbegin(), msg.rend())));
@@ -61,7 +61,7 @@ namespace MyPgp {
         return MyPgp::toLittleEndianHex(boost::multiprecision::powm(m, k.first, k.second));
     }
         
-    const std::string RSA::decrypt(const std::string &cript, const std::string &key, const bool block)
+    const std::string RSA::decrypt(const std::string &cript, const std::string &key, [[maybe_unused]] const bool block)
     {
         auto k = parseKey(key);
         auto m = MyPgp::fromLittleEndianHex(cript);

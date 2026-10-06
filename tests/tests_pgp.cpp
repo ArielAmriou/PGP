@@ -14,6 +14,7 @@
 #include "AES.hpp"
 #include "Xor.hpp"
 #include "RSA.hpp"
+#include "PGP.hpp"
 #include "Exception.hpp"
 #include "MyPgp.hpp"
 
@@ -93,7 +94,7 @@ namespace {
     void checkComposition(const std::string &msg, const std::string &symKey, bool block,
         const std::string &pub, const std::string &expectedRsaLine)
     {
-        std::string out = MyPgp::MyPgp::encrypt<ENC>(msg, symKey + ":" + pub, block);
+        std::string out = MyPgp::PGP::encrypt<ENC>(msg, symKey + ":" + pub, block);
         auto [line1, line2] = splitOutput(out);
 
         std::string expectedMsgLine = ENC(msg, symKey, block);
@@ -105,9 +106,9 @@ namespace {
     template <CipherFn ENC, CipherFn DEC>
     void checkRoundtrip(const std::string &msg, const std::string &symKey, bool block)
     {
-        std::string out = MyPgp::MyPgp::encrypt<ENC>(msg, symKey + ":" + OWN_PUB, block);
+        std::string out = MyPgp::PGP::encrypt<ENC>(msg, symKey + ":" + OWN_PUB, block);
         auto [line1, line2] = splitOutput(out);
-        std::string res = MyPgp::MyPgp::decrypt<DEC>(line2, line1 + ":" + OWN_PRIV, block);
+        std::string res = MyPgp::PGP::decrypt<DEC>(line2, line1 + ":" + OWN_PRIV, block);
 
         expectEq(res, msg, "Decrypt(Encrypt(msg)) must give back msg");
     }
@@ -116,7 +117,7 @@ namespace {
     void checkDecryptWithGivenRsaLine(const std::string &msg, bool block)
     {
         std::string symCrypt = ENC(msg, SYM_KEY, block);
-        std::string res = MyPgp::MyPgp::decrypt<DEC>(symCrypt, OWN_RSA_LINE + ":" + OWN_PRIV, block);
+        std::string res = MyPgp::PGP::decrypt<DEC>(symCrypt, OWN_RSA_LINE + ":" + OWN_PRIV, block);
 
         expectEq(res, msg, "Decryption with a known RSA line failed");
     }
@@ -124,13 +125,13 @@ namespace {
     template <CipherFn ENC, CipherFn DEC>
     void checkWrongPrivateKey(const std::string &msg, bool block)
     {
-        std::string out = MyPgp::MyPgp::encrypt<ENC>(msg, SYM_KEY + ":" + OWN_PUB, block);
+        std::string out = MyPgp::PGP::encrypt<ENC>(msg, SYM_KEY + ":" + OWN_PUB, block);
         auto [line1, line2] = splitOutput(out);
         std::string res;
         bool threw = false;
 
         try {
-            res = MyPgp::MyPgp::decrypt<DEC>(line2, line1 + ":" + OWN_PRIV_WRONG, block);
+            res = MyPgp::PGP::decrypt<DEC>(line2, line1 + ":" + OWN_PRIV_WRONG, block);
         } catch (...) {
             threw = true;
         }
@@ -141,16 +142,16 @@ namespace {
     template <CipherFn ENC, CipherFn DEC>
     void checkWrongArgs()
     {
-        assertMyPgpError([] { MyPgp::MyPgp::encrypt<ENC>("Hi", SYM_KEY); }, "Wrong args.");
-        assertMyPgpError([] { MyPgp::MyPgp::encrypt<ENC>("Hi", SYM_KEY + ":" + OWN_PUB + ":00"); }, "Wrong args.");
-        assertMyPgpError([] { MyPgp::MyPgp::decrypt<DEC>("00", OWN_RSA_LINE); }, "Wrong args.");
-        assertMyPgpError([] { MyPgp::MyPgp::decrypt<DEC>("00", OWN_RSA_LINE + ":" + OWN_PRIV + ":00"); }, "Wrong args.");
+        assertMyPgpError([] { MyPgp::PGP::encrypt<ENC>("Hi", SYM_KEY); }, "Wrong args.");
+        assertMyPgpError([] { MyPgp::PGP::encrypt<ENC>("Hi", SYM_KEY + ":" + OWN_PUB + ":00"); }, "Wrong args.");
+        assertMyPgpError([] { MyPgp::PGP::decrypt<DEC>("00", OWN_RSA_LINE); }, "Wrong args.");
+        assertMyPgpError([] { MyPgp::PGP::decrypt<DEC>("00", OWN_RSA_LINE + ":" + OWN_PRIV + ":00"); }, "Wrong args.");
     }
 }
 
 Test(PgpAes_Encrypt, subject_vector_block_mode)
 {
-    std::string out = MyPgp::MyPgp::encrypt<MyPgp::AES::encrypt>(MSG16, SYM_KEY + ":" + VECTOR_PUB, true);
+    std::string out = MyPgp::PGP::encrypt<MyPgp::AES::encrypt>(MSG16, SYM_KEY + ":" + VECTOR_PUB, true);
 
     std::string expected = VECTOR_RSA_LINE + "\n" + AES_BLOCK_LINE;
 
@@ -174,7 +175,7 @@ Test(PgpAes_Encrypt, rsa_line_does_not_depend_on_block_mode)
 
 Test(PgpAes_Encrypt, rsa_line_has_modulus_size)
 {
-    std::string out = MyPgp::MyPgp::encrypt<MyPgp::AES::encrypt>(MSG16, SYM_KEY + ":" + VECTOR_PUB, true);
+    std::string out = MyPgp::PGP::encrypt<MyPgp::AES::encrypt>(MSG16, SYM_KEY + ":" + VECTOR_PUB, true);
     auto [line1, line2] = splitOutput(out);
 
     cr_assert_eq(line1.size(), 128UL, "A 512 bit modulus gives 64 bytes, so 128 hex chars");
@@ -183,8 +184,8 @@ Test(PgpAes_Encrypt, rsa_line_has_modulus_size)
 
 Test(PgpAes_Encrypt, different_public_key_changes_only_the_rsa_line)
 {
-    std::string a = MyPgp::MyPgp::encrypt<MyPgp::AES::encrypt>(MSG16, SYM_KEY + ":" + VECTOR_PUB, true);
-    std::string b = MyPgp::MyPgp::encrypt<MyPgp::AES::encrypt>(MSG16, SYM_KEY + ":" + OWN_PUB, true);
+    std::string a = MyPgp::PGP::encrypt<MyPgp::AES::encrypt>(MSG16, SYM_KEY + ":" + VECTOR_PUB, true);
+    std::string b = MyPgp::PGP::encrypt<MyPgp::AES::encrypt>(MSG16, SYM_KEY + ":" + OWN_PUB, true);
     auto [a1, a2] = splitOutput(a);
     auto [b1, b2] = splitOutput(b);
 
@@ -195,8 +196,8 @@ Test(PgpAes_Encrypt, different_public_key_changes_only_the_rsa_line)
 Test(PgpAes_Encrypt, different_symmetric_key_changes_both_lines)
 {
     std::string other = "000102030405060708090a0b0c0d0e0f";
-    std::string a = MyPgp::MyPgp::encrypt<MyPgp::AES::encrypt>(MSG16, SYM_KEY + ":" + OWN_PUB, true);
-    std::string b = MyPgp::MyPgp::encrypt<MyPgp::AES::encrypt>(MSG16, other + ":" + OWN_PUB, true);
+    std::string a = MyPgp::PGP::encrypt<MyPgp::AES::encrypt>(MSG16, SYM_KEY + ":" + OWN_PUB, true);
+    std::string b = MyPgp::PGP::encrypt<MyPgp::AES::encrypt>(MSG16, other + ":" + OWN_PUB, true);
     auto [a1, a2] = splitOutput(a);
     auto [b1, b2] = splitOutput(b);
 
@@ -208,8 +209,8 @@ Test(PgpAes_Encrypt, is_deterministic)
 {
     std::string key = SYM_KEY + ":" + OWN_PUB;
 
-    std::string first = MyPgp::MyPgp::encrypt<MyPgp::AES::encrypt>(MSG16, key, true);
-    std::string second = MyPgp::MyPgp::encrypt<MyPgp::AES::encrypt>(MSG16, key, true);
+    std::string first = MyPgp::PGP::encrypt<MyPgp::AES::encrypt>(MSG16, key, true);
+    std::string second = MyPgp::PGP::encrypt<MyPgp::AES::encrypt>(MSG16, key, true);
 
     expectEq(second, first, "Same input must give the same output");
 }
@@ -221,7 +222,7 @@ Test(PgpAes_Encrypt, wrong_number_of_key_parts)
 
 Test(PgpAes_Decrypt, known_rsa_line_block_mode)
 {
-    std::string res = MyPgp::MyPgp::decrypt<MyPgp::AES::decrypt>(AES_BLOCK_LINE, OWN_RSA_LINE + ":" + OWN_PRIV, true);
+    std::string res = MyPgp::PGP::decrypt<MyPgp::AES::decrypt>(AES_BLOCK_LINE, OWN_RSA_LINE + ":" + OWN_PRIV, true);
 
     expectEq(res, MSG16, "Known ciphertext must decrypt to the original message");
 }
@@ -286,8 +287,8 @@ Test(PgpXor_Encrypt, rsa_line_does_not_depend_on_block_mode)
 
 Test(PgpXor_Encrypt, rsa_line_is_the_same_as_pgp_aes)
 {
-    std::string xorOut = MyPgp::MyPgp::encrypt<MyPgp::Xor::encrypt>(MSG16, SYM_KEY + ":" + VECTOR_PUB, true);
-    std::string aesOut = MyPgp::MyPgp::encrypt<MyPgp::AES::encrypt>(MSG16, SYM_KEY + ":" + VECTOR_PUB, true);
+    std::string xorOut = MyPgp::PGP::encrypt<MyPgp::Xor::encrypt>(MSG16, SYM_KEY + ":" + VECTOR_PUB, true);
+    std::string aesOut = MyPgp::PGP::encrypt<MyPgp::AES::encrypt>(MSG16, SYM_KEY + ":" + VECTOR_PUB, true);
 
     std::string xorLine = splitOutput(xorOut).first;
     std::string aesLine = splitOutput(aesOut).first;
@@ -297,8 +298,8 @@ Test(PgpXor_Encrypt, rsa_line_is_the_same_as_pgp_aes)
 
 Test(PgpXor_Encrypt, different_public_key_changes_only_the_rsa_line)
 {
-    std::string a = MyPgp::MyPgp::encrypt<MyPgp::Xor::encrypt>(MSG16, SYM_KEY + ":" + VECTOR_PUB, true);
-    std::string b = MyPgp::MyPgp::encrypt<MyPgp::Xor::encrypt>(MSG16, SYM_KEY + ":" + OWN_PUB, true);
+    std::string a = MyPgp::PGP::encrypt<MyPgp::Xor::encrypt>(MSG16, SYM_KEY + ":" + VECTOR_PUB, true);
+    std::string b = MyPgp::PGP::encrypt<MyPgp::Xor::encrypt>(MSG16, SYM_KEY + ":" + OWN_PUB, true);
     auto [a1, a2] = splitOutput(a);
     auto [b1, b2] = splitOutput(b);
 
@@ -310,8 +311,8 @@ Test(PgpXor_Encrypt, is_deterministic)
 {
     std::string key = SYM_KEY + ":" + OWN_PUB;
 
-    std::string first = MyPgp::MyPgp::encrypt<MyPgp::Xor::encrypt>(MSG16, key, true);
-    std::string second = MyPgp::MyPgp::encrypt<MyPgp::Xor::encrypt>(MSG16, key, true);
+    std::string first = MyPgp::PGP::encrypt<MyPgp::Xor::encrypt>(MSG16, key, true);
+    std::string second = MyPgp::PGP::encrypt<MyPgp::Xor::encrypt>(MSG16, key, true);
 
     expectEq(second, first, "Same input must give the same output");
 }

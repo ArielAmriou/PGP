@@ -34,6 +34,7 @@ HEADERS = 	$(addprefix -iquote include/, 		\
 			Cript/AES/							\
 			Cript/ElGamal/ 						\
 			Cript/RSA/ 							\
+			Cript/PGP/ 							\
     	)
 
 PATH_UNI = 	$(addprefix tests/, 				\
