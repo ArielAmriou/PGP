@@ -22,18 +22,19 @@
 #include "AES.hpp"
 #include "ElGamal.hpp"
 #include "RSA.hpp"
+#include "PGP.hpp"
 #include <iostream>
 #include <bits/stdc++.h>
 
 namespace MyPgp {
 
     const std::array<MyPgp::CryptoEntry, 6> MyPgp::CRYPTO_SYSTEMS{{
-        {"xor", CryptoSystem::XOR, &Xor::encrypt, &Xor::decrypt},
-        {"aes", CryptoSystem::AES, &AES::encrypt, &AES::decrypt},
-        {"rsa", CryptoSystem::RSA, &RSA::encrypt, &RSA::decrypt},
-        {"pgp-xor", CryptoSystem::PGP_XOR, nullptr, nullptr},
-        {"pgp-aes", CryptoSystem::PGP_AES, nullptr, nullptr},
-        {"elgamal", CryptoSystem::ELGAMAL, &ElGamal::encrypt, &ElGamal::decrypt}
+        {"xor", CryptoSystem::XOR, Xor::encrypt, Xor::decrypt},
+        {"aes", CryptoSystem::AES, AES::encrypt, AES::decrypt},
+        {"rsa", CryptoSystem::RSA, RSA::encrypt, RSA::decrypt},
+        {"pgp-xor", CryptoSystem::PGP_XOR, PGP::encrypt<Xor::encrypt>, PGP::decrypt<Xor::decrypt>},
+        {"pgp-aes", CryptoSystem::PGP_AES, PGP::encrypt<AES::encrypt>, PGP::decrypt<AES::decrypt>},
+        {"elgamal", CryptoSystem::ELGAMAL, ElGamal::encrypt, ElGamal::decrypt}
     }};
 
     MyPgp::MyPgp(std::vector<std::string> args)
@@ -41,8 +42,10 @@ namespace MyPgp {
         parseArgs(args);
         if (_mode != Mode::GENERATE) {
             parseMsg();
-            if (_block && _mode == Mode::CIPHER && _key
-                && _msg.size() != _key.value().size() / 2)
+            auto size = _key.value().find_first_of(":");
+            if (size == std::string::npos)
+                size = _key.value().size();
+            if (_block && _mode == Mode::CIPHER && _msg.size() != size / 2)
                 throw MyPgpException(
                     "The message and the symmetric key must be the same size");
         }

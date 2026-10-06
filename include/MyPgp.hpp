@@ -11,8 +11,11 @@
     #include <optional>
     #include <string>
     #include <vector>
+    #include <functional>
     #include <boost/multiprecision/cpp_int.hpp>
     #include "ACipher.hpp"
+    #include "RSA.hpp"
+    #include "Exception.hpp"
 
 namespace MyPgp {
 

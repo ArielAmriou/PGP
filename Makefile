@@ -34,6 +34,7 @@ HEADERS = 	$(addprefix -iquote include/, 		\
 			Cript/AES/							\
 			Cript/ElGamal/ 						\
 			Cript/RSA/ 							\
+			Cript/PGP/ 							\
     	)
 
 PATH_UNI = 	$(addprefix tests/, 				\
@@ -42,6 +43,7 @@ PATH_UNI = 	$(addprefix tests/, 				\
 				tests_functionnal.cpp 			\
 				tests_elgamal.cpp 				\
 				tests_rsa.cpp 					\
+				tests_pgp.cpp 					\
 			)
 
 OBJ = $(SRC:.cpp=.o) $(MAIN:.cpp=.o)
