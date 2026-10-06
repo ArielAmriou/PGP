@@ -132,7 +132,8 @@ namespace MyPgp {
                 return;
             _msg += '\n';
         }
-        _msg.pop_back();
+        if (!_msg.empty() && _msg.back() == '\n')
+            _msg.pop_back();
     }
 
     void MyPgp::displayHelp()
