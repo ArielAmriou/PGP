@@ -85,7 +85,7 @@ namespace MyPgp {
         if (generate) {
             _mode = Mode::GENERATE;
             auto values = Parser::ArgsParser::getArgList<std::string>(args, "-g");
-            if (values.size() > 2)
+            if (values.empty() || values.size() > 2)
                 throw Parser::ArgsParserError(
                     "-g requires one or two args");
             _p = values[0];
@@ -126,7 +126,7 @@ namespace MyPgp {
     {
         std::string line;
 
-        while (std::getline(std::cin, line)) { 
+        while (std::getline(std::cin, line)) {
             _msg += line;
             if (isatty(STDIN_FILENO))
                 return;
