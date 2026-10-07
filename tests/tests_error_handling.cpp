@@ -140,6 +140,12 @@ Test(Parsing, Wrong_args_Generate_4)
     cr_assert_str_eq(value.c_str(), "Help Exception");
 }
 
+Test(Parsing, Repeated_flag_generate)
+{
+    std::string value = testMain({"rsa", "-g", "-g"});
+    cr_assert_str_eq(value.c_str(), "Arguments error: -g requires one or two args");
+}
+
 Test(Parsing, Wrong_option)
 {
     std::string value = testMain({"rsa", "-c", "-b", " 0101-19bb"});

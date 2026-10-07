@@ -358,3 +358,79 @@ Test(PgpXor_Decrypt, wrong_private_key_does_not_give_the_message)
 {
     checkWrongPrivateKey<MyPgp::Xor::encrypt, MyPgp::Xor::decrypt>(MSG16, true);
 }
+
+Test(PgpAes_CheckKey, valid_key_does_not_throw)
+{
+    try {
+        MyPgp::PGP::checkKey<MyPgp::AES::checkKey, MyPgp::RSA::checkKey>(
+            SYM_KEY + ":" + OWN_PUB, MyPgp::Mode::CIPHER);
+    } catch (MyPgp::MyPgpException &e) {
+        cr_assert_fail("A valid pgp-aes key must not be rejected: %s", e.what());
+    }
+}
+
+Test(PgpAes_CheckKey, missing_separator_throws_wrong_args)
+{
+    assertMyPgpError([] {
+        MyPgp::PGP::checkKey<MyPgp::AES::checkKey, MyPgp::RSA::checkKey>(
+            SYM_KEY, MyPgp::Mode::CIPHER);
+    }, "Wrong args.");
+}
+
+Test(PgpAes_CheckKey, too_many_parts_throws_wrong_args)
+{
+    assertMyPgpError([] {
+        MyPgp::PGP::checkKey<MyPgp::AES::checkKey, MyPgp::RSA::checkKey>(
+            SYM_KEY + ":" + OWN_PUB + ":00", MyPgp::Mode::CIPHER);
+    }, "Wrong args.");
+}
+
+Test(PgpAes_CheckKey, invalid_symmetric_part_throws)
+{
+    assertMyPgpError([] {
+        MyPgp::PGP::checkKey<MyPgp::AES::checkKey, MyPgp::RSA::checkKey>(
+            std::string("0001020304:") + OWN_PUB, MyPgp::Mode::CIPHER);
+    }, "Invalid key format");
+}
+
+Test(PgpAes_CheckKey, invalid_asymmetric_part_throws)
+{
+    assertMyPgpError([] {
+        MyPgp::PGP::checkKey<MyPgp::AES::checkKey, MyPgp::RSA::checkKey>(
+            SYM_KEY + ":" + "notarsakey", MyPgp::Mode::CIPHER);
+    }, "Invalid key format");
+}
+
+Test(PgpXor_CheckKey, valid_key_does_not_throw)
+{
+    try {
+        MyPgp::PGP::checkKey<MyPgp::Xor::checkKey, MyPgp::RSA::checkKey>(
+            "0a0b0c0d:" + OWN_PUB, MyPgp::Mode::CIPHER);
+    } catch (MyPgp::MyPgpException &e) {
+        cr_assert_fail("A valid pgp-xor key must not be rejected: %s", e.what());
+    }
+}
+
+Test(PgpXor_CheckKey, missing_separator_throws_wrong_args)
+{
+    assertMyPgpError([] {
+        MyPgp::PGP::checkKey<MyPgp::Xor::checkKey, MyPgp::RSA::checkKey>(
+            "0a0b0c0d", MyPgp::Mode::CIPHER);
+    }, "Wrong args.");
+}
+
+Test(PgpXor_CheckKey, invalid_symmetric_part_throws)
+{
+    assertMyPgpError([] {
+        MyPgp::PGP::checkKey<MyPgp::Xor::checkKey, MyPgp::RSA::checkKey>(
+            "z:" + OWN_PUB, MyPgp::Mode::CIPHER);
+    }, "Invalid key format");
+}
+
+Test(PgpXor_CheckKey, invalid_asymmetric_part_throws)
+{
+    assertMyPgpError([] {
+        MyPgp::PGP::checkKey<MyPgp::Xor::checkKey, MyPgp::RSA::checkKey>(
+            "0a0b0c0d:0-1", MyPgp::Mode::CIPHER);
+    }, "Invalid key format");
+}

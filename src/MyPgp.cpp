@@ -29,18 +29,22 @@
 namespace MyPgp {
 
     const std::array<MyPgp::CryptoEntry, 6> MyPgp::CRYPTO_SYSTEMS{{
-        {"xor", CryptoSystem::XOR, Xor::encrypt, Xor::decrypt},
-        {"aes", CryptoSystem::AES, AES::encrypt, AES::decrypt},
-        {"rsa", CryptoSystem::RSA, RSA::encrypt, RSA::decrypt},
-        {"pgp-xor", CryptoSystem::PGP_XOR, PGP::encrypt<Xor::encrypt>, PGP::decrypt<Xor::decrypt>},
-        {"pgp-aes", CryptoSystem::PGP_AES, PGP::encrypt<AES::encrypt>, PGP::decrypt<AES::decrypt>},
-        {"elgamal", CryptoSystem::ELGAMAL, ElGamal::encrypt, ElGamal::decrypt}
+        {"xor", CryptoSystem::XOR, Xor::encrypt, Xor::decrypt, Xor::checkKey},
+        {"aes", CryptoSystem::AES, AES::encrypt, AES::decrypt, AES::checkKey},
+        {"rsa", CryptoSystem::RSA, RSA::encrypt, RSA::decrypt, RSA::checkKey},
+        {"pgp-xor", CryptoSystem::PGP_XOR, PGP::encrypt<Xor::encrypt>,
+            PGP::decrypt<Xor::decrypt>, PGP::checkKey<Xor::checkKey, RSA::checkKey>},
+        {"pgp-aes", CryptoSystem::PGP_AES, PGP::encrypt<AES::encrypt>,
+            PGP::decrypt<AES::decrypt>, PGP::checkKey<AES::checkKey, RSA::checkKey>},
+        {"elgamal", CryptoSystem::ELGAMAL, ElGamal::encrypt, ElGamal::decrypt, ElGamal::checkKey}
     }};
 
     MyPgp::MyPgp(std::vector<std::string> args)
     {
         parseArgs(args);
         if (_mode != Mode::GENERATE) {
+            if (_system->checkKey)
+                _system->checkKey(_key.value(), _mode);
             parseMsg();
             auto size = _key.value().find_first_of(":");
             if (size == std::string::npos)
@@ -65,6 +69,7 @@ namespace MyPgp {
             throw Parser::ArgsParserError(
                 args.front() + " is not a valid method");
         _cryptoSystem = system->system;
+        _system = &(*system);
         args.erase(args.begin());
 
         _block = Parser::ArgsParser::isArg(args, "-b");
@@ -85,7 +90,7 @@ namespace MyPgp {
         if (generate) {
             _mode = Mode::GENERATE;
             auto values = Parser::ArgsParser::getArgList<std::string>(args, "-g");
-            if (values.size() > 2)
+            if (values.empty() || values.size() > 2)
                 throw Parser::ArgsParserError(
                     "-g requires one or two args");
             _p = values[0];
@@ -126,7 +131,7 @@ namespace MyPgp {
     {
         std::string line;
 
-        while (std::getline(std::cin, line)) { 
+        while (std::getline(std::cin, line)) {
             _msg += line;
             if (isatty(STDIN_FILENO))
                 return;
@@ -147,13 +152,11 @@ namespace MyPgp {
 
     void MyPgp::launch()
     {
-        auto system = std::find_if(CRYPTO_SYSTEMS.begin(), CRYPTO_SYSTEMS.end(),
-            [this](const auto &pair) { return pair.system == this->_cryptoSystem; });
         try {
-            if (_mode == Mode::CIPHER && system->encrypt && _key) {
-                std::cout << system->encrypt(_msg, _key.value(), _block) << std::endl;
-            } else if (_mode == Mode::DECIPHER && system->decrypt && _key) {
-                std::cout << system->decrypt(_msg, _key.value(), _block) << std::endl;
+            if (_mode == Mode::CIPHER && _system->encrypt && _key) {
+                std::cout << _system->encrypt(_msg, _key.value(), _block) << std::endl;
+            } else if (_mode == Mode::DECIPHER && _system->decrypt && _key) {
+                std::cout << _system->decrypt(_msg, _key.value(), _block) << std::endl;
             } else {
                 keyGen();
             }
@@ -190,13 +193,20 @@ namespace MyPgp {
         return s;
     }
 
+    bool MyPgp::isHex(const std::string &str)
+    {
+        if (str.empty() || str.size() % 2)
+            return false;
+        for (auto c : str)
+            if (!std::isxdigit(static_cast<unsigned char>(c)))
+                return false;
+        return true;
+    }
+
     std::string MyPgp::hexToStr(const std::string &hex, std::size_t wordSize)
     {
-        if (hex.size() % 2)
+        if (!MyPgp::isHex(hex))
             throw MyPgpException("This is not an hex number: '" + hex + "'.");
-        for (auto c : hex)
-            if (!std::isxdigit(static_cast<unsigned char>(c)))
-                throw MyPgpException("This is not an hex number: '" + hex + "'.");
         std::string out;
         for (std::size_t i = 0; i + 1 < hex.size(); i += 2)
             out += static_cast<char>(std::stoi(hex.substr(i, 2), nullptr, 16));

@@ -18,6 +18,8 @@ namespace MyPgp {
         static const std::string encrypt(const std::string &msg, const std::string &key, [[maybe_unused]] const bool block = false);
         
         static const std::string decrypt(const std::string &cript, const std::string &key, [[maybe_unused]] const bool block = false);
+
+        static void checkKey(const std::string &key, [[maybe_unused]] const Mode mode);
     };
 
 };

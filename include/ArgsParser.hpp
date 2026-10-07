@@ -116,7 +116,7 @@ namespace Parser {
             auto arg = args.get().begin();
             for (; arg != args.get().end(); ++arg) {
                 if (*arg == flag) {
-                    args.get().erase(arg);
+                    arg = args.get().erase(arg);
                     break;
                 }
             }
@@ -127,7 +127,7 @@ namespace Parser {
                     break;
                 T tmp;
                 std::istringstream(*(arg)) >> tmp;
-                args.get().erase(arg);
+                arg = args.get().erase(arg);
                 final.emplace_back(tmp);
             }
             return final;

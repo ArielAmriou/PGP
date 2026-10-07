@@ -8,6 +8,7 @@
 #include <criterion/criterion.h>
 
 #include <cstring>
+#include <functional>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -290,4 +291,129 @@ Test(ElGamal_Decrypt, decoded_value_over_255_fails)
     std::string key = makePublicKey(SMALL_P, SMALL_G, SMALL_PRIV);
 
     assertMyPgpError([&] { MyPgp::ElGamal::decrypt(SMALL_BAD, key); }, "Decryption failed.");
+}
+
+/* ------------------------------------------------------------------ */
+/* checkKey                                                            */
+/* ------------------------------------------------------------------ */
+
+namespace {
+
+    void assertNoThrow(const std::function<void()> &fn, const char *what)
+    {
+        try {
+            fn();
+        } catch (MyPgp::MyPgpException &e) {
+            cr_assert_fail("%s: unexpected exception \"%s\"", what, e.what());
+        }
+    }
+}
+
+Test(ElGamal_CheckKey, generate_single_prime_is_valid)
+{
+    assertNoThrow([] { MyPgp::ElGamal::checkKey(SMALL_P, MyPgp::Mode::GENERATE); },
+        "A prime without a seed must be accepted");
+}
+
+Test(ElGamal_CheckKey, generate_prime_with_seed_is_valid)
+{
+    assertNoThrow([] { MyPgp::ElGamal::checkKey(SMALL_P + ":01", MyPgp::Mode::GENERATE); },
+        "A prime with a seed must be accepted");
+}
+
+Test(ElGamal_CheckKey, generate_too_many_seed_parts_is_rejected)
+{
+    assertMyPgpError([] { MyPgp::ElGamal::checkKey(SMALL_P + ":01:02", MyPgp::Mode::GENERATE); },
+        "Invalid key format");
+}
+
+Test(ElGamal_CheckKey, generate_non_hex_prime_is_rejected)
+{
+    assertMyPgpError([] { MyPgp::ElGamal::checkKey("zz", MyPgp::Mode::GENERATE); },
+        "Invalid key format");
+}
+
+Test(ElGamal_CheckKey, generate_empty_key_is_rejected)
+{
+    assertMyPgpError([] { MyPgp::ElGamal::checkKey("", MyPgp::Mode::GENERATE); },
+        "Invalid key format");
+}
+
+Test(ElGamal_CheckKey, cipher_key_without_seed_is_valid)
+{
+    std::string key = makePublicKey(SMALL_P, SMALL_G, SMALL_PUB);
+
+    assertNoThrow([&] { MyPgp::ElGamal::checkKey(key, MyPgp::Mode::CIPHER); },
+        "A p-g-key triplet without a seed must be accepted");
+}
+
+Test(ElGamal_CheckKey, cipher_key_with_seed_is_valid)
+{
+    std::string key = makePublicKey(SMALL_P, SMALL_G, SMALL_PUB) + ":05";
+
+    assertNoThrow([&] { MyPgp::ElGamal::checkKey(key, MyPgp::Mode::CIPHER); },
+        "A p-g-key triplet with a seed must be accepted");
+}
+
+Test(ElGamal_CheckKey, cipher_wrong_number_of_dash_parts_is_rejected)
+{
+    assertMyPgpError([] { MyPgp::ElGamal::checkKey(SMALL_P + "-" + SMALL_G, MyPgp::Mode::CIPHER); },
+        "Invalid key format");
+    assertMyPgpError([] {
+        MyPgp::ElGamal::checkKey(makePublicKey(SMALL_P, SMALL_G, SMALL_PUB) + "-00", MyPgp::Mode::CIPHER);
+    }, "Invalid key format");
+}
+
+Test(ElGamal_CheckKey, cipher_too_many_seed_parts_is_rejected)
+{
+    std::string key = makePublicKey(SMALL_P, SMALL_G, SMALL_PUB) + ":01:02";
+
+    assertMyPgpError([&] { MyPgp::ElGamal::checkKey(key, MyPgp::Mode::CIPHER); },
+        "Invalid key format");
+}
+
+Test(ElGamal_CheckKey, cipher_non_hex_component_is_rejected)
+{
+    std::string key = makePublicKey("zz", SMALL_G, SMALL_PUB);
+
+    assertMyPgpError([&] { MyPgp::ElGamal::checkKey(key, MyPgp::Mode::CIPHER); },
+        "Invalid key format");
+}
+
+Test(ElGamal_CheckKey, cipher_non_hex_seed_is_rejected)
+{
+    std::string key = makePublicKey(SMALL_P, SMALL_G, SMALL_PUB) + ":zz";
+
+    assertMyPgpError([&] { MyPgp::ElGamal::checkKey(key, MyPgp::Mode::CIPHER); },
+        "Invalid key format");
+}
+
+Test(ElGamal_CheckKey, decipher_key_is_valid)
+{
+    std::string key = makePublicKey(SMALL_P, SMALL_G, SMALL_PRIV);
+
+    assertNoThrow([&] { MyPgp::ElGamal::checkKey(key, MyPgp::Mode::DECIPHER); },
+        "A p-g-key triplet must be accepted for deciphering");
+}
+
+Test(ElGamal_CheckKey, decipher_wrong_number_of_parts_is_rejected)
+{
+    assertMyPgpError([] { MyPgp::ElGamal::checkKey(SMALL_P + "-" + SMALL_PRIV, MyPgp::Mode::DECIPHER); },
+        "Invalid key format");
+}
+
+Test(ElGamal_CheckKey, decipher_key_with_seed_is_rejected)
+{
+    std::string key = makePublicKey(SMALL_P, SMALL_G, SMALL_PRIV) + ":05";
+
+    assertMyPgpError([&] { MyPgp::ElGamal::checkKey(key, MyPgp::Mode::DECIPHER); },
+        "Invalid key format");
+}
+
+Test(ElGamal_CheckKey, decipher_non_hex_component_is_rejected)
+{
+    std::string key = makePublicKey(SMALL_P, SMALL_G, "zz");
+
+    assertMyPgpError([&] { MyPgp::ElGamal::checkKey(key, MyPgp::Mode::DECIPHER); },
+        "Invalid key format");
 }

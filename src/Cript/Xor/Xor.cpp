@@ -23,8 +23,6 @@ namespace MyPgp {
         std::size_t keylen = cpy.length();
         std::string cript;
 
-        if (keylen == 0)
-            throw MyPgpException("The key must not be empty.");
         for (; i < msglen; ++i) {
             char xorByte = msg[i] ^ cpy[i % keylen];
             cript.push_back(xorByte);
@@ -42,8 +40,6 @@ namespace MyPgp {
         std::size_t keylen = keyCpy.length();
         std::string msg;
 
-        if (keylen == 0)
-            throw MyPgpException("The key must not be empty.");
         while (criptlen > 0 && criptCpy[criptlen - 1] == '\0')
             --criptlen;
         for (std::size_t i = 0; i < criptlen; ++i) {
@@ -53,4 +49,12 @@ namespace MyPgp {
         }
         return msg;
     }
+
+    void Xor::checkKey(const std::string &key, [[maybe_unused]] const Mode mode)
+    {
+        if (key.length() >= 2 && MyPgp::isHex(key))
+            return;
+        throw MyPgpException("Invalid key format");
+    }
+
 };
