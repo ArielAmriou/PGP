@@ -36,6 +36,8 @@ namespace MyPgp {
 
         static void keyGen(const std::string &p, const std::string &q);
 
+        static void checkKey(const std::string &key, [[maybe_unused]] const Mode mode);
+
     };
 
 };

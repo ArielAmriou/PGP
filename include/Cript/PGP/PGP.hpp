@@ -38,6 +38,17 @@ namespace MyPgp {
             return func(msg, decryptKey, block);
         }
 
+        template<ACipher::KeyCheckFn symCheck, ACipher::KeyCheckFn asymCheck>
+        static void checkKey(const std::string &key, const Mode mode)
+        {
+            auto split = MyPgp::splitString(key, ':');
+            if (split.size() != 2)
+                throw MyPgpException("Wrong args.");
+            asymCheck(split[ASYM_KEY], mode);
+            if (mode == Mode::CIPHER)
+                symCheck(split[SYM_KEY], mode);
+        }
+
     private:
         
         enum CYPHER_INFO {

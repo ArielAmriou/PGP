@@ -74,4 +74,14 @@ namespace MyPgp {
         return std::string(msg.rbegin(), msg.rend());
     }
 
+    void RSA::checkKey(const std::string &key, [[maybe_unused]] const Mode mode)
+    {
+        auto k = MyPgp::splitString(key, '-');
+
+        if (k.size() == 2 && k[0].length() >= 2 && MyPgp::isHex(k[0])
+            && k[1].length() >= 2 && MyPgp::isHex(k[1]))
+            return;
+        throw MyPgpException("Invalid key format");
+    }
+
 }

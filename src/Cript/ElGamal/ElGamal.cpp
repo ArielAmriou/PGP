@@ -119,4 +119,37 @@ namespace MyPgp {
             values.push_back(MyPgp::fromLittleEndianHex(info));
         return values;
     }
+
+    void ElGamal::checkKey(const std::string &key, const Mode mode)
+    {
+        if (mode == Mode::GENERATE) {
+            auto args = MyPgp::splitString(key, ':');
+            if (args.empty() || args.size() > 2)
+                throw MyPgpException("Invalid key format");
+            for (const auto &arg : args)
+                if (!MyPgp::isHex(arg))
+                    throw MyPgpException("Invalid key format");
+            return;
+        }
+        if (mode == Mode::DECIPHER) {
+            auto parts = MyPgp::splitString(key, '-');
+            if (parts.size() != NB_DECRYPT_KEY_INFO)
+                throw MyPgpException("Invalid key format");
+            for (const auto &part : parts)
+                if (!MyPgp::isHex(part))
+                    throw MyPgpException("Invalid key format");
+            return;
+        }
+        auto args = MyPgp::splitString(key, ':');
+        if (args.empty() || args.size() > 2)
+            throw MyPgpException("Invalid key format");
+        if (args.size() == 2 && !MyPgp::isHex(args[1]))
+            throw MyPgpException("Invalid key format");
+        auto parts = MyPgp::splitString(args[0], '-');
+        if (parts.size() != NB_ENCRYPT_INFO)
+            throw MyPgpException("Invalid key format");
+        for (const auto &part : parts)
+            if (!MyPgp::isHex(part))
+                throw MyPgpException("Invalid key format");
+    }
 }

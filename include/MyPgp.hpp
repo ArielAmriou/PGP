@@ -48,6 +48,7 @@ namespace MyPgp {
         void run();
 
         static void displayHelp();
+        static bool isHex(const std::string &str);
         static std::string hexToStr(const std::string &hex, std::size_t wordSize = 0);
         static std::string strToHex(const std::string &str, std::size_t wordSize = 0);
         static std::string reorder(std::string s, std::size_t wordSize = 0);
@@ -62,6 +63,7 @@ namespace MyPgp {
             CryptoSystem system;
             ACipher::CipherFn encrypt;
             ACipher::CipherFn decrypt;
+            ACipher::KeyCheckFn checkKey;
         };
 
         void parseArgs(std::vector<std::string> args);
@@ -76,6 +78,7 @@ namespace MyPgp {
         std::string _msg;
         std::optional<std::string> _p;
         std::optional<std::string> _q;
+        const CryptoEntry *_system = nullptr;
 
         static const std::array<CryptoEntry, 6> CRYPTO_SYSTEMS;
     };

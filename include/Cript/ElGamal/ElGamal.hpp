@@ -27,6 +27,8 @@ namespace MyPgp {
 
         static void keyGen(const std::string &p);
 
+        static void checkKey(const std::string &key, [[maybe_unused]] const Mode mode);
+
     private:
         enum ENCRYPT_INFO {
             ENCRYPT_PRIME,

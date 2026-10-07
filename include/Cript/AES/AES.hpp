@@ -28,6 +28,8 @@ namespace MyPgp {
 
         static const std::string basicDecrypt(const std::string &msg, const std::string &key, const bool block = false);
 
+        static void checkKey(const std::string &key, [[maybe_unused]] const Mode mode);
+
         class WrongKeySize : public MyPgpException {
         public:
             WrongKeySize() :
