@@ -10,25 +10,54 @@
 #include <sstream>
 #include <ios>
 #include <iostream>
+#include <algorithm>
+#include <cstdint>
+#include <cstring>
 
 #include "MyPgp.hpp"
 
 namespace MyPgp {
 
+    void Xor::xorBytes(std::string &dst, const std::string &src, std::size_t offset, const std::string &key, std::size_t len)
+    {
+        std::size_t i = 0;
+
+        for (; i + sizeof(std::uint64_t) <= len; i += sizeof(std::uint64_t)) {
+            std::uint64_t wa;
+            std::uint64_t wb;
+
+            std::memcpy(&wa, src.data() + offset + i, sizeof(wa));
+            std::memcpy(&wb, key.data() + i, sizeof(wb));
+            wa ^= wb;
+            std::memcpy(dst.data() + offset + i, &wa, sizeof(wa));
+        }
+        for (; i < len; ++i)
+            dst[offset + i] = src[offset + i] ^ key[i];
+    }
+
+    void Xor::applyXor(std::string &dst, const std::string &src, const std::string &key, std::size_t len)
+    {
+        std::size_t keylen = key.length();
+
+        for (std::size_t offset = 0; offset < len; offset += keylen) {
+            std::size_t blockLen = std::min(keylen, len - offset);
+
+            Xor::xorBytes(dst, src, offset, key, blockLen);
+        }
+    }
+
     const std::string Xor::encrypt(const std::string &msg, const std::string &key, [[maybe_unused]] const bool block)
     {
         std::string cpy = MyPgp::hexToStr(key);
-        std::size_t i = 0;
         std::size_t msglen = msg.length();
         std::size_t keylen = cpy.length();
-        std::string cript;
+        std::size_t paddedLen = ((msglen + keylen - 1) / keylen) * keylen;
+        std::string paddedMsg = msg;
 
-        for (; i < msglen; ++i) {
-            char xorByte = msg[i] ^ cpy[i % keylen];
-            cript.push_back(xorByte);
-        }
-        for (; i % keylen != 0; ++i)
-            cript.push_back('\0');
+        paddedMsg.resize(paddedLen, '\0');
+        std::string cript(paddedLen, '\0');
+
+        Xor::applyXor(cript, paddedMsg, cpy, paddedLen);
         return MyPgp::strToHex(cript);
     }
 
@@ -37,16 +66,13 @@ namespace MyPgp {
         std::string keyCpy = MyPgp::hexToStr(key);
         std::string criptCpy = MyPgp::hexToStr(cript);
         std::size_t criptlen = criptCpy.length();
-        std::size_t keylen = keyCpy.length();
-        std::string msg;
 
-        while (criptlen > 0 && criptCpy[criptlen - 1] == '\0')
+        std::string msg(criptlen, '\0');
+        Xor::applyXor(msg, criptCpy, keyCpy, criptlen);
+
+        while (criptlen > 0 && msg[criptlen - 1] == '\0')
             --criptlen;
-        for (std::size_t i = 0; i < criptlen; ++i) {
-            unsigned int byte;
-            byte = criptCpy[i];
-            msg.push_back(static_cast<char>(byte) ^ keyCpy[i % keylen]);
-        }
+        msg.resize(criptlen);
         return msg;
     }
 
