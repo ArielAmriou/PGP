@@ -79,7 +79,8 @@ namespace MyPgp {
         auto k = MyPgp::splitString(key, '-');
 
         if (k.size() == 2 && k[0].length() >= 2 && MyPgp::isHex(k[0])
-            && k[1].length() >= 2 && MyPgp::isHex(k[1]))
+            && k[1].length() >= 2 && MyPgp::isHex(k[1])
+            && MyPgp::fromLittleEndianHex(k[1]) != 0)
             return;
         throw MyPgpException("Invalid key format");
     }
