@@ -52,9 +52,12 @@ namespace MyPgp {
         std::size_t msglen = msg.length();
         std::size_t keylen = cpy.length();
         std::size_t paddedLen = ((msglen + keylen - 1) / keylen) * keylen;
+        std::string paddedMsg = msg;
+
+        paddedMsg.resize(paddedLen, '\0');
         std::string cript(paddedLen, '\0');
 
-        Xor::applyXor(cript, msg, cpy, msglen);
+        Xor::applyXor(cript, paddedMsg, cpy, paddedLen);
         return MyPgp::strToHex(cript);
     }
 
@@ -64,11 +67,12 @@ namespace MyPgp {
         std::string criptCpy = MyPgp::hexToStr(cript);
         std::size_t criptlen = criptCpy.length();
 
-        while (criptlen > 0 && criptCpy[criptlen - 1] == '\0')
-            --criptlen;
-
         std::string msg(criptlen, '\0');
         Xor::applyXor(msg, criptCpy, keyCpy, criptlen);
+
+        while (criptlen > 0 && msg[criptlen - 1] == '\0')
+            --criptlen;
+        msg.resize(criptlen);
         return msg;
     }
 
