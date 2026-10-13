@@ -15,8 +15,6 @@
 #include "RSA.hpp"
 #include "Exception.hpp"
 
-using boost::multiprecision::cpp_int;
-
 namespace {
 
     /* Subject example 1: keyGen("d3", "e3") */
@@ -46,13 +44,13 @@ namespace {
         "f4e571b5596d212f3e79cd08ef14abd244e325b80";
 
     /* Hex strings are little endian (lowest byte first), as in the subject */
-    cpp_int fromLittleEndianHex(const std::string &hex)
+    mpz_class fromLittleEndianHex(const std::string &hex)
     {
         std::string bigEndian;
 
         for (std::size_t i = 0; i + 2 <= hex.size(); i += 2)
             bigEndian = hex.substr(i, 2) + bigEndian;
-        return cpp_int("0x" + bigEndian);
+        return mpz_class("0x" + bigEndian);
     }
 
     struct KeyPair {
@@ -90,7 +88,7 @@ namespace {
         return kp;
     }
 
-    std::pair<cpp_int, cpp_int> splitKey(const std::string &key)
+    std::pair<mpz_class, mpz_class> splitKey(const std::string &key)
     {
         auto pos = key.find('-');
 
@@ -118,22 +116,22 @@ namespace {
 
 Test(RSA_Lambda, is_lcm_of_p_minus_1_and_q_minus_1)
 {
-    cr_assert(MyPgp::RSA::lambda(cpp_int(3), cpp_int(5)) == cpp_int(4), "lcm(2, 4) must be 4");
-    cr_assert(MyPgp::RSA::lambda(cpp_int(5), cpp_int(7)) == cpp_int(12), "lcm(4, 6) must be 12");
-    cr_assert(MyPgp::RSA::lambda(cpp_int(7), cpp_int(13)) == cpp_int(12), "lcm(6, 12) must be 12");
+    cr_assert(MyPgp::RSA::lambda(mpz_class(3), mpz_class(5)) == mpz_class(4), "lcm(2, 4) must be 4");
+    cr_assert(MyPgp::RSA::lambda(mpz_class(5), mpz_class(7)) == mpz_class(12), "lcm(4, 6) must be 12");
+    cr_assert(MyPgp::RSA::lambda(mpz_class(7), mpz_class(13)) == mpz_class(12), "lcm(6, 12) must be 12");
 }
 
 Test(RSA_Lambda, subject_primes)
 {
-    cpp_int lambda = MyPgp::RSA::lambda(cpp_int(0xd3), cpp_int(0xe3));
+    mpz_class lambda = MyPgp::RSA::lambda(mpz_class(0xd3), mpz_class(0xe3));
 
-    cr_assert(lambda == cpp_int(23730), "lcm(210, 226) must be 23730, got %s", lambda.str().c_str());
+    cr_assert(lambda == mpz_class(23730), "lcm(210, 226) must be 23730, got %s", lambda.get_str().c_str());
 }
 
 Test(RSA_Lambda, is_symmetric)
 {
-    cpp_int p = fromLittleEndianHex("d3");
-    cpp_int q = fromLittleEndianHex("e3");
+    mpz_class p = fromLittleEndianHex("d3");
+    mpz_class q = fromLittleEndianHex("e3");
 
     cr_assert(MyPgp::RSA::lambda(p, q) == MyPgp::RSA::lambda(q, p), "lambda(p, q) must equal lambda(q, p)");
 }
@@ -169,8 +167,8 @@ Test(RSA_KeyGen, is_deterministic)
 
 Test(RSA_KeyGen, modulus_is_p_times_q)
 {
-    cpp_int p = fromLittleEndianHex(SMALL_P);
-    cpp_int q = fromLittleEndianHex(SMALL_Q);
+    mpz_class p = fromLittleEndianHex(SMALL_P);
+    mpz_class q = fromLittleEndianHex(SMALL_Q);
     KeyPair kp = runKeyGen(SMALL_P, SMALL_Q);
 
     cr_assert(splitKey(kp.pub).second == p * q, "Public modulus must be p * q");
@@ -181,26 +179,26 @@ Test(RSA_KeyGen, public_exponent_is_a_fermat_number)
 {
     /* Fermat numbers 2^(2^k) + 1 for k in [0, MAX_FERMAT_K] */
     KeyPair kp = runKeyGen(BIG_P, BIG_Q);
-    cpp_int e = splitKey(kp.pub).first;
+    mpz_class e = splitKey(kp.pub).first;
     bool isFermat = false;
 
     for (std::size_t k = 0; k <= MyPgp::MAX_FERMAT_K; k++) {
-        cpp_int fermat = (cpp_int(1) << (1 << k)) + 1;
+        mpz_class fermat = (mpz_class(1) << (1 << k)) + 1;
         if (e == fermat)
             isFermat = true;
     }
-    cr_assert(isFermat, "Public exponent %s must be a Fermat number", e.str().c_str());
+    cr_assert(isFermat, "Public exponent %s must be a Fermat number", e.get_str().c_str());
 }
 
 Test(RSA_KeyGen, private_exponent_inverts_public_exponent)
 {
-    cpp_int p = fromLittleEndianHex(BIG_P);
-    cpp_int q = fromLittleEndianHex(BIG_Q);
+    mpz_class p = fromLittleEndianHex(BIG_P);
+    mpz_class q = fromLittleEndianHex(BIG_Q);
     KeyPair kp = runKeyGen(BIG_P, BIG_Q);
-    cpp_int e = splitKey(kp.pub).first;
-    cpp_int d = splitKey(kp.priv).first;
+    mpz_class e = splitKey(kp.pub).first;
+    mpz_class d = splitKey(kp.priv).first;
 
-    cr_assert((e * d) % MyPgp::RSA::lambda(p, q) == cpp_int(1), "e * d must be 1 modulo lambda(p, q)");
+    cr_assert((e * d) % MyPgp::RSA::lambda(p, q) == mpz_class(1), "e * d must be 1 modulo lambda(p, q)");
 }
 
 /* ------------------------------------------------------------------ */
@@ -232,7 +230,7 @@ Test(RSA_Encrypt, is_deterministic)
 Test(RSA_Encrypt, ciphertext_is_smaller_than_modulus)
 {
     std::string crypt = MyPgp::RSA::encrypt(BIG_MSG, BIG_PUB);
-    cpp_int n = splitKey(BIG_PUB).second;
+    mpz_class n = splitKey(BIG_PUB).second;
 
     cr_assert(fromLittleEndianHex(crypt) < n, "Ciphertext must be smaller than the modulus");
 }

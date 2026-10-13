@@ -139,7 +139,7 @@ Test(ElGamal, test_if_generation_work, .init = redirect_all_std)
 Test(ElGamal, test_if_encryption_work, .init = redirect_all_std)
 {
     std::string methode = "elgamal";
-    std::string key = "4b1da73924978f2e9c1f04170e46820d648edbee12ccf4d4462af89b080c86e1-02-b10ad02e10b74b1091d7125eeaf9a285c71313d5a2449094e207ff419a473942:34";
+    std::string key = "4b1da73924978f2e9c1f04170e46820d648edbee12ccf4d4462af89b080c86e1-02-c1683360d33cb5bba4893ce580b9c2467239886a6a746c86f4b6fc941325ab4d:34";
 
     auto result = readFile("ciphered_" + methode) + "\n";
     std::string value = testMain({methode, "-c", key}, "message_" + methode);
@@ -151,7 +151,7 @@ Test(ElGamal, test_if_encryption_work, .init = redirect_all_std)
 Test(ElGamal, test_if_decryption_work, .init = redirect_all_std)
 {
     std::string methode = "elgamal";
-    std::string key = "4b1da73924978f2e9c1f04170e46820d648edbee12ccf4d4462af89b080c86e1-02-f75bb7d29ca6c8d20babaf060dde70259710f53556f8b16b9ce3509ef7a1edd3";
+    std::string key = "4b1da73924978f2e9c1f04170e46820d648edbee12ccf4d4462af89b080c86e1-02-67fd9ac1bb2e4c5c7d3c114fa3240f42d81f2a18f7ab46229c2455dea686908a";
 
     auto result = readFile("message_" + methode) + "\n";
     std::string value = testMain({methode, "-d", key}, "ciphered_" + methode);

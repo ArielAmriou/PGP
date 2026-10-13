@@ -12,14 +12,12 @@
     #include <string>
     #include <vector>
     #include <functional>
-    #include <boost/multiprecision/cpp_int.hpp>
+    #include <gmpxx.h>
     #include "ACipher.hpp"
     #include "RSA.hpp"
     #include "Exception.hpp"
 
 namespace MyPgp {
-
-    using boost::multiprecision::cpp_int;
 
     constexpr int EPISUCCESS = 0;
     constexpr int EPIERROR = 84;
@@ -52,9 +50,12 @@ namespace MyPgp {
         static std::string hexToStr(const std::string &hex, std::size_t wordSize = 0);
         static std::string strToHex(const std::string &str, std::size_t wordSize = 0);
         static std::string reorder(std::string s, std::size_t wordSize = 0);
-        static cpp_int fromLittleEndianHex(const std::string &hex);
-        static std::string toLittleEndianHex(const cpp_int &n, std::size_t byteLen = 0);
+        static mpz_class fromLittleEndianHex(const std::string &hex);
+        static std::string toLittleEndianHex(const mpz_class &n, std::size_t byteLen = 0);
         static std::vector<std::string> splitString(const std::string &str, char delim);
+        static mpz_class powm(const mpz_class &base, const mpz_class &exp, const mpz_class &mod);
+        static mpz_class modInverse(const mpz_class &a, const mpz_class &m);
+        static std::size_t msb(const mpz_class &n);
 
     private:
 

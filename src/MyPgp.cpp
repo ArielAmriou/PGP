@@ -221,13 +221,32 @@ namespace MyPgp {
         return ss.str();
     }
 
-    cpp_int MyPgp::fromLittleEndianHex(const std::string &leHex)
+    mpz_class MyPgp::powm(const mpz_class &base, const mpz_class &exp, const mpz_class &mod)
     {
-        std::string beHex = MyPgp::strToHex(MyPgp::hexToStr(leHex, 0), 1);
-        return cpp_int("0x" + beHex);
+        mpz_class result;
+        mpz_powm(result.get_mpz_t(), base.get_mpz_t(), exp.get_mpz_t(), mod.get_mpz_t());
+        return result;
     }
 
-    std::string MyPgp::toLittleEndianHex(const cpp_int &n, std::size_t byteLen)
+    mpz_class MyPgp::modInverse(const mpz_class &a, const mpz_class &m)
+    {
+        mpz_class result;
+        mpz_invert(result.get_mpz_t(), a.get_mpz_t(), m.get_mpz_t());
+        return result;
+    }
+
+    std::size_t MyPgp::msb(const mpz_class &n)
+    {
+        return mpz_sizeinbase(n.get_mpz_t(), 2) - 1;
+    }
+
+    mpz_class MyPgp::fromLittleEndianHex(const std::string &leHex)
+    {
+        std::string beHex = MyPgp::strToHex(MyPgp::hexToStr(leHex, 0), 1);
+        return mpz_class("0x" + beHex);
+    }
+
+    std::string MyPgp::toLittleEndianHex(const mpz_class &n, std::size_t byteLen)
     {
         std::ostringstream ss;
         ss << std::hex << n;

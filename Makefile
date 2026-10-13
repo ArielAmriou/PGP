@@ -52,16 +52,18 @@ OBJ = $(SRC:.cpp=.o) $(MAIN:.cpp=.o)
 
 TESTS = tests_run
 
-CXXFLAGS = -Wall -Wextra --std=c++26
+CXXFLAGS = -Wall -Wextra --std=c++26 -O2
 
 CPPFLAGS = $(HEADERS)
+
+LDLIBS = -lgmpxx -lgmp
 
 NAME = my_pgp
 
 all:	$(NAME)
 
 $(NAME): $(OBJ)
-	$(CXX) -o $(NAME) $(OBJ) $(CPPFLAGS)
+	$(CXX) -o $(NAME) $(OBJ) $(CPPFLAGS) $(LDLIBS)
 
 debug: CFLAGS += -g
 debug: fclean $(OBJ) $(OBJ)

@@ -17,8 +17,6 @@
 #include "Exception.hpp"
 #include "MyPgp.hpp"
 
-using boost::multiprecision::cpp_int;
-using boost::multiprecision::powm;
 
 namespace {
 
@@ -35,9 +33,9 @@ namespace {
         "584b3ab46c7a7e854415d018454dea1ecf55d6c63c3191fbc7b152e87a145f8b";
 
     struct KeyPair {
-        cpp_int generator;
-        cpp_int priv;
-        cpp_int pub;
+        mpz_class generator;
+        mpz_class priv;
+        mpz_class pub;
     };
 
     KeyPair runKeyGen(const std::string &arg)
@@ -62,7 +60,7 @@ namespace {
             if (pos == std::string::npos)
                 continue;
             std::string name = line.substr(0, pos);
-            cpp_int val = MyPgp::MyPgp::MyPgp::fromLittleEndianHex(line.substr(pos + 2));
+            mpz_class val = MyPgp::MyPgp::MyPgp::fromLittleEndianHex(line.substr(pos + 2));
             if (name == "Generator") { kp.generator = val; found++; }
             else if (name == "Private key") { kp.priv = val; found++; }
             else if (name == "Public key") { kp.pub = val; found++; }
@@ -100,26 +98,26 @@ Test(ElGamal_KeyGen, small_prime_generator_is_found)
 {
     KeyPair kp = runKeyGen(SMALL_P + ":01");
 
-    cr_assert(kp.generator == 2, "Expected generator 2 for p = 467, got %s", kp.generator.str().c_str());
+    cr_assert(kp.generator == 2, "Expected generator 2 for p = 467, got %s", kp.generator.get_str().c_str());
 }
 
 Test(ElGamal_KeyGen, private_key_is_in_range)
 {
-    cpp_int p = MyPgp::MyPgp::fromLittleEndianHex(SMALL_P);
+    mpz_class p = MyPgp::MyPgp::fromLittleEndianHex(SMALL_P);
 
     for (int seed = 1; seed < 50; seed++) {
-        std::string hexSeed = MyPgp::MyPgp::toLittleEndianHex(cpp_int(seed), 1);
+        std::string hexSeed = MyPgp::MyPgp::toLittleEndianHex(mpz_class(seed), 1);
         KeyPair kp = runKeyGen(SMALL_P + ":" + hexSeed);
-        cr_assert(kp.priv >= 2 && kp.priv <= p - 2, "Private key %s out of [2, p-2]", kp.priv.str().c_str());
+        cr_assert(kp.priv >= 2 && kp.priv <= p - 2, "Private key %s out of [2, p-2]", kp.priv.get_str().c_str());
     }
 }
 
 Test(ElGamal_KeyGen, public_key_is_generator_power_private_key)
 {
-    cpp_int p = MyPgp::MyPgp::fromLittleEndianHex(BIG_P);
+    mpz_class p = MyPgp::MyPgp::fromLittleEndianHex(BIG_P);
     KeyPair kp = runKeyGen(BIG_P + ":34");
 
-    cr_assert(kp.pub == powm(kp.generator, kp.priv, p), "Public key must be g^x mod p");
+    cr_assert(kp.pub == MyPgp::MyPgp::powm(kp.generator, kp.priv, p), "Public key must be g^x mod p");
     cr_assert(kp.pub < p, "Public key must be smaller than the prime");
     cr_assert(kp.priv < p, "Private key must be smaller than the prime");
 }
@@ -152,13 +150,13 @@ Test(ElGamal_KeyGen, no_seed_gives_random_keys)
 
 Test(ElGamal_KeyGen, generator_is_never_a_quadratic_residue_on_safe_prime)
 {
-    cpp_int p = MyPgp::MyPgp::fromLittleEndianHex(BIG_P);
-    cpp_int q = (p - 1) / 2;
+    mpz_class p = MyPgp::MyPgp::fromLittleEndianHex(BIG_P);
+    mpz_class q = (p - 1) / 2;
     KeyPair kp = runKeyGen(BIG_P + ":34");
 
     cr_assert(kp.generator != 2, "2 is a quadratic residue for this prime, it cannot be a generator");
-    cr_assert(powm(kp.generator, cpp_int(2), p) != 1, "g^2 must not be 1");
-    cr_assert(powm(kp.generator, q, p) != 1, "g^q must not be 1");
+    cr_assert(MyPgp::MyPgp::powm(kp.generator, mpz_class(2), p) != 1, "g^2 must not be 1");
+    cr_assert(MyPgp::MyPgp::powm(kp.generator, q, p) != 1, "g^q must not be 1");
 }
 
 Test(ElGamal_KeyGen, too_many_args)

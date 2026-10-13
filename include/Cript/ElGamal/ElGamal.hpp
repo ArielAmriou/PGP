@@ -8,15 +8,11 @@
 #ifndef ELGAMAL_HPP_
 #define ELGAMAL_HPP_
 
-#include <boost/multiprecision/cpp_int.hpp>
+#include <gmpxx.h>
 #include <optional>
 #include "ACipher.hpp"
 
 namespace MyPgp {
-
-    using boost::multiprecision::cpp_int;
-    using boost::multiprecision::powm;
-    using boost::multiprecision::msb;
 
     class ElGamal : public ACipher {
     public:
@@ -50,10 +46,10 @@ namespace MyPgp {
             NB_DECRYPT_KEY_INFO
         };
 
-        static cpp_int findGenerator(const cpp_int &p);
-        static cpp_int getRange(const cpp_int &min, const cpp_int &max,
+        static mpz_class findGenerator(const mpz_class &p);
+        static mpz_class getRange(const mpz_class &min, const mpz_class &max,
             const std::optional<unsigned int> &seed);
-        static std::vector<cpp_int> parseInfo(
+        static std::vector<mpz_class> parseInfo(
             const std::vector<std::string> &infos, std::size_t nb);
 
         static constexpr std::size_t BYTESIZE = 8;
