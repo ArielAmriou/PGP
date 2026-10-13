@@ -123,6 +123,43 @@ Test(AES, test_if_decryption_work, .init = redirect_all_std)
     cr_assert_stdout_eq_str(result.c_str(), "Wrong result for decrypt %s.", methode.c_str());
 }
 
+Test(RSA, test_if_generation_work, .init = redirect_all_std)
+{
+    std::string methode = "rsa";
+    std::string p = "4b1da73924978f2e9c1f04170e46820d648edbee12ccf4d4462af89b080c86e1";
+    std::string q = "bb3ca1e126f7c8751bd81bc8daa226494efb3d128f72ed9f6cacbe96e14166cb";
+
+    auto result = readFile("generated_" + methode) + "\n";
+    std::string value = testMain({methode, "-g", p, q});
+    cr_assert_str_eq(value.c_str(), "No Error", "When executing generated on %s it throw: %s.", methode.c_str(), value.c_str());
+    fflush(stdout);
+    cr_assert_stdout_eq_str(result.c_str(), "Wrong result for generated %s.", methode.c_str());
+}
+
+Test(RSA, test_if_encryption_work, .init = redirect_all_std)
+{
+    std::string methode = "rsa";
+    std::string key = "010001-c9f91a9ff3bd6d84005b9cc8448296330bd23480f8cf8b36fd4edd0a8cd925de139a0076b962f4d57f50d6f9e64e7c41587784488f923dd60136c763fd602fb3";
+
+    auto result = readFile("ciphered_" + methode) + "\n";
+    std::string value = testMain({methode, "-c", key}, "message_" + methode);
+    cr_assert_str_eq(value.c_str(), "No Error", "When executing crypt on %s it throw: %s.", methode.c_str(), value.c_str());
+    fflush(stdout);
+    cr_assert_stdout_eq_str(result.c_str(), "Wrong result for crypt %s.", methode.c_str());
+}
+
+Test(RSA, test_if_decryption_work, .init = redirect_all_std)
+{
+    std::string methode = "rsa";
+    std::string key = "81b08f4eb6dd8a4dd21728e5194dfc4e349829c9991c8b5e44b31e6ceee1e56a11d66ef23389be92ef7a4178470693f509c90b86d4a1e1831056ca0757f3e209-c9f91a9ff3bd6d84005b9cc8448296330bd23480f8cf8b36fd4edd0a8cd925de139a0076b962f4d57f50d6f9e64e7c41587784488f923dd60136c763fd602fb3";
+
+    auto result = readFile("message_" + methode) + "\n";
+    std::string value = testMain({methode, "-d", key}, "ciphered_" + methode);
+    cr_assert_str_eq(value.c_str(), "No Error", "When executing decrypt on %s it throw: %s.", methode.c_str(), value.c_str());
+    fflush(stdout);
+    cr_assert_stdout_eq_str(result.c_str(), "Wrong result for decrypt %s.", methode.c_str());
+}
+
 Test(ElGamal, test_if_generation_work, .init = redirect_all_std)
 {
     std::string methode = "elgamal";
