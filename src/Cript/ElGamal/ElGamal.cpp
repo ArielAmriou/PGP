@@ -5,8 +5,7 @@
 ** ElGamal
 */
 
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/uniform_int_distribution.hpp>
+#include <iostream>
 #include <random>
 #include "ElGamal.hpp"
 #include "Exception.hpp"
@@ -23,17 +22,17 @@ namespace MyPgp {
         auto infos = parseInfo(MyPgp::splitString(args[0], '-'), ENCRYPT_INFO::NB_ENCRYPT_INFO);
         std::optional<unsigned int> seed;
         if (args.size() == 2)
-            seed = MyPgp::fromLittleEndianHex(args[1]).convert_to<unsigned int>();
-        cpp_int tmpKey = getRange(2, infos[ENCRYPT_PRIME], seed);
-        cpp_int c1 = powm(infos[ENCRYPT_GENERATOR], tmpKey, infos[ENCRYPT_PRIME]);
+            seed = static_cast<unsigned int>(MyPgp::fromLittleEndianHex(args[1]).get_ui());
+        mpz_class tmpKey = getRange(2, infos[ENCRYPT_PRIME], seed);
+        mpz_class c1 = MyPgp::powm(infos[ENCRYPT_GENERATOR], tmpKey, infos[ENCRYPT_PRIME]);
         std::string crypt = MyPgp::toLittleEndianHex(c1) + "-";
-        cpp_int secret = powm(infos[ENCRYPT_PUBLIC], tmpKey, infos[ENCRYPT_PRIME]);
-        std::size_t byteLen = msb(infos[ENCRYPT_PRIME] - 1) / BYTESIZE + 1;
+        mpz_class secret = MyPgp::powm(infos[ENCRYPT_PUBLIC], tmpKey, infos[ENCRYPT_PRIME]);
+        std::size_t byteLen = MyPgp::msb(infos[ENCRYPT_PRIME] - 1) / BYTESIZE + 1;
         for (unsigned char ch : msg) {
-            cpp_int m = ch;
+            mpz_class m = ch;
             if (m >= infos[ENCRYPT_PRIME])
                 throw MyPgpException("Prime too small for this message.");
-            cpp_int c2 = (m * secret) % infos[ENCRYPT_PRIME];
+            mpz_class c2 = (m * secret) % infos[ENCRYPT_PRIME];
             crypt += MyPgp::toLittleEndianHex(c2, byteLen);
             if (block)
                 break;
@@ -47,20 +46,20 @@ namespace MyPgp {
         auto keyInfos = parseInfo(MyPgp::splitString(key, '-'), NB_DECRYPT_KEY_INFO);
         if (msgInfos.size() != NB_DECRYPT_MSG_INFO)
             throw MyPgpException("Wrong infos.");
-        cpp_int c1 = MyPgp::fromLittleEndianHex(msgInfos[DECRYPT_C1]);
-        cpp_int secret = powm(c1, keyInfos[DECRYPT_PRIVATE], keyInfos[DECRYPT_PRIME]);
-        cpp_int invSecret = powm(secret, keyInfos[DECRYPT_PRIME] - 2, keyInfos[DECRYPT_PRIME]);
-        std::size_t hexLen = (msb(keyInfos[DECRYPT_PRIME] - 1) / BYTESIZE + 1) * 2;
+        mpz_class c1 = MyPgp::fromLittleEndianHex(msgInfos[DECRYPT_C1]);
+        mpz_class secret = MyPgp::powm(c1, keyInfos[DECRYPT_PRIVATE], keyInfos[DECRYPT_PRIME]);
+        mpz_class invSecret = MyPgp::powm(secret, keyInfos[DECRYPT_PRIME] - 2, keyInfos[DECRYPT_PRIME]);
+        std::size_t hexLen = (MyPgp::msb(keyInfos[DECRYPT_PRIME] - 1) / BYTESIZE + 1) * 2;
         std::string decrypt;
         std::string body(msgInfos[DECRYPT_C2]);
         if (body.size() % hexLen != 0)
             throw MyPgpException("Wrong message length.");
         for (std::size_t i = 0; i < body.size(); i += hexLen) {
-            cpp_int c2 = MyPgp::fromLittleEndianHex(body.substr(i, hexLen));
-            cpp_int m = (c2 * invSecret) % keyInfos[DECRYPT_PRIME];
+            mpz_class c2 = MyPgp::fromLittleEndianHex(body.substr(i, hexLen));
+            mpz_class m = (c2 * invSecret) % keyInfos[DECRYPT_PRIME];
             if (m > 255)
                 throw MyPgpException("Decryption failed.");
-            decrypt += static_cast<char>(m.convert_to<int>());
+            decrypt += static_cast<char>(m.get_si());
             if (block)
                 break;
         }
@@ -73,14 +72,14 @@ namespace MyPgp {
 
             if (args.empty() || args.size() > 2)
                 throw MyPgpException("Wrong args.");
-            cpp_int prime = MyPgp::fromLittleEndianHex(args[0]);
+            mpz_class prime = MyPgp::fromLittleEndianHex(args[0]);
             std::optional<unsigned int> seed;
             if (args.size() == 2)
-                seed = MyPgp::fromLittleEndianHex(args[1]).convert_to<unsigned int>();
+                seed = static_cast<unsigned int>(MyPgp::fromLittleEndianHex(args[1]).get_ui());
             try {
-                cpp_int generator = findGenerator(prime);
-                cpp_int privateKey = getRange(2, prime - 2, seed);
-                cpp_int publicKey = powm(generator, privateKey, prime);
+                mpz_class generator = findGenerator(prime);
+                mpz_class privateKey = getRange(2, prime - 2, seed);
+                mpz_class publicKey = MyPgp::powm(generator, privateKey, prime);
                 std::cout << "Generator: " << MyPgp::toLittleEndianHex(generator) << "\n";
                 std::cout << "Private key: " << MyPgp::toLittleEndianHex(privateKey) << "\n";
                 std::cout << "Public key: " << MyPgp::toLittleEndianHex(publicKey) << std::endl;
@@ -89,30 +88,38 @@ namespace MyPgp {
             }
     }
 
-    cpp_int ElGamal::findGenerator(const cpp_int &p)
+    mpz_class ElGamal::findGenerator(const mpz_class &p)
     {
-        cpp_int q = (p - 1) / 2;
+        mpz_class q = (p - 1) / 2;
 
-        for (cpp_int g = 2; g < p - 1; ++g) {
-            if (powm(g, cpp_int(2), p) != 1 && powm(g, q, p) != 1)
+        for (mpz_class g = 2; g < p - 1; ++g) {
+            if (MyPgp::powm(g, mpz_class(2), p) != 1 && MyPgp::powm(g, q, p) != 1)
                 return g;
         }
         throw MyPgpException("No generator found");
     }
 
-    cpp_int ElGamal::getRange(const cpp_int &min, const cpp_int &max,
+    mpz_class ElGamal::getRange(const mpz_class &min, const mpz_class &max,
         const std::optional<unsigned int> &seed)
     {
-        boost::random::mt19937 gen(seed ? seed.value() : std::random_device{}());
-        boost::random::uniform_int_distribution<cpp_int> distrib(min, max);
-        return distrib(gen);
+        gmp_randstate_t state;
+        gmp_randinit_mt(state);
+        gmp_randseed_ui(state, seed ? seed.value() : std::random_device{}());
+
+        mpz_class range = max - min + 1;
+        mpz_class result;
+        mpz_urandomm(result.get_mpz_t(), state, range.get_mpz_t());
+        result += min;
+
+        gmp_randclear(state);
+        return result;
     }
 
-    std::vector<cpp_int> ElGamal::parseInfo(
+    std::vector<mpz_class> ElGamal::parseInfo(
         const std::vector<std::string> &infos, std::size_t nb)
     {
-        std::vector<cpp_int> values;
-  
+        std::vector<mpz_class> values;
+
         if (infos.size() != nb)
             throw MyPgpException("Wrong infos.");
         for (const auto &info : infos)

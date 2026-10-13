@@ -9,26 +9,24 @@
 #define RSA_HPP_
 
 #include "ACipher.hpp"
-#include <boost/multiprecision/cpp_int.hpp>
+#include <gmpxx.h>
 
 namespace MyPgp {
-
-    using boost::multiprecision::cpp_int;
 
     constexpr std::size_t MAX_FERMAT_K = 4;
 
     class RSA: public ACipher {
     private:
-    
-        static const cpp_int genFermat(std::size_t const k);
 
-        static const cpp_int genE(cpp_int const &l);
+        static const mpz_class genFermat(std::size_t const k);
 
-        static const std::pair<cpp_int, cpp_int> parseKey(std::string const &k);
-    
+        static const mpz_class genE(mpz_class const &l);
+
+        static const std::pair<mpz_class, mpz_class> parseKey(std::string const &k);
+
     public:
-    
-        static const cpp_int lambda(cpp_int const &p, cpp_int const &q);
+
+        static const mpz_class lambda(mpz_class const &p, mpz_class const &q);
 
         static const std::string encrypt(const std::string &msg, const std::string &key, const bool block = false);
         
